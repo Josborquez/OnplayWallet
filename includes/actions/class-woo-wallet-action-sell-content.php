@@ -1,6 +1,6 @@
 <?php
 /**
- * TeraWallet sell content action file.
+ * OnplayWallet sell content action file.
  *
  * @package Standalonetech
  */
@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 /**
- * TeraWallet sell content action class
+ * OnplayWallet sell content action class
  */
 class Woo_Wallet_Action_Sell_Content extends WooWalletAction {
 	/**

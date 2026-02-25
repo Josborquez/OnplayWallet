@@ -2,7 +2,7 @@
 /**
  * Admin View: Edit wallet balance popup.
  *
- * @package StandaloneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

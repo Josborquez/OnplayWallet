@@ -7,17 +7,17 @@
  * @author   Subrata Mal
  * @category API
  * @since   1.3.23
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * REST API TeraWallet controller class.
+ * REST API OnplayWallet controller class.
  *
  * @extends WC_REST_Controller
  */
-class WC_REST_TeraWallet_V3_Controller extends WC_REST_Controller {
+class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 
 	/**
 	 * Endpoint namespace.
@@ -180,7 +180,7 @@ class WC_REST_TeraWallet_V3_Controller extends WC_REST_Controller {
 		$params = $request->get_params();
 		$user   = get_user_by( 'email', $params['email'] );
 		if ( ! $user ) {
-			return new WP_Error( 'terawallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
 		}
 		$args = apply_filters(
 			'woo_wallet_rest_api_get_items_args',
@@ -208,7 +208,7 @@ class WC_REST_TeraWallet_V3_Controller extends WC_REST_Controller {
 		$params = $request->get_params();
 		$user   = get_user_by( 'email', $params['email'] );
 		if ( ! $user ) {
-			return new WP_Error( 'terawallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
 		}
 		$balance = woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
 		return new WP_REST_Response(
@@ -229,7 +229,7 @@ class WC_REST_TeraWallet_V3_Controller extends WC_REST_Controller {
 		$params = $request->get_params();
 		$user   = get_user_by( 'email', $params['email'] );
 		if ( ! $user ) {
-			return new WP_Error( 'terawallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
 		}
 		if ( isset( $params['type'] ) && isset( $params['amount'] ) ) {
 			$note           = isset( $params['note'] ) ? $params['note'] : '';

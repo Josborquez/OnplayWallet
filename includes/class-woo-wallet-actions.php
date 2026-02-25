@@ -2,7 +2,7 @@
 /**
  * Wallet actions file.
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -114,7 +114,7 @@ class WOO_Wallet_Actions {
 		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 		// Register scripts.
 		wp_register_script( 'woo_wallet_admin_actions', woo_wallet()->plugin_url() . '/build/admin/actions.js', array( 'jquery' ), WOO_WALLET_PLUGIN_VERSION, true );
-		$woo_wallet_screen_id = sanitize_title( __( 'TeraWallet', 'woo-wallet' ) );
+		$woo_wallet_screen_id = sanitize_title( __( 'OnplayWallet', 'woo-wallet' ) );
 		if ( in_array( $screen_id, array( "{$woo_wallet_screen_id}_page_woo-wallet-actions" ), true ) ) {
 			wp_enqueue_script( 'woo_wallet_admin_actions' );
 		}

@@ -2,7 +2,7 @@
 /**
  * Plugin ajax file
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -48,11 +48,11 @@ if ( ! class_exists( 'Woo_Wallet_Ajax' ) ) {
 
 			add_action( 'woocommerce_order_after_calculate_totals', array( $this, 'recalculate_order_cashback_after_calculate_totals' ), 10, 2 );
 
-			add_action( 'wp_ajax_terawallet_export_user_search', array( $this, 'terawallet_export_user_search' ) );
+			add_action( 'wp_ajax_onplaywallet_export_user_search', array( $this, 'onplaywallet_export_user_search' ) );
 
-			add_action( 'wp_ajax_terawallet_do_ajax_transaction_export', array( $this, 'terawallet_do_ajax_transaction_export' ) );
+			add_action( 'wp_ajax_onplaywallet_do_ajax_transaction_export', array( $this, 'onplaywallet_do_ajax_transaction_export' ) );
 
-			add_action( 'wp_ajax_lock_unlock_terawallet', array( $this, 'lock_unlock_terawallet' ) );
+			add_action( 'wp_ajax_lock_unlock_onplaywallet', array( $this, 'lock_unlock_onplaywallet' ) );
 
 			add_action( 'wp_ajax_get_edit_wallet_balance_template_data', array( $this, 'edit_wallet_balance_template_data' ) );
 		}
@@ -61,7 +61,7 @@ if ( ! class_exists( 'Woo_Wallet_Ajax' ) ) {
 		 *
 		 * @return void
 		 */
-		public function lock_unlock_terawallet() {
+		public function lock_unlock_onplaywallet() {
 			check_ajax_referer( 'lock-unlock-nonce', 'security' );
 			$user_id = isset( $_POST['user_id'] ) ? sanitize_text_field( wp_unslash( $_POST['user_id'] ) ) : 0;
 			$type    = isset( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : '';
@@ -95,12 +95,12 @@ if ( ! class_exists( 'Woo_Wallet_Ajax' ) ) {
 		/**
 		 * Generate export CSV file.
 		 */
-		public function terawallet_do_ajax_transaction_export() {
-			check_ajax_referer( 'terawallet-exporter-script', 'security' );
-			include_once WOO_WALLET_ABSPATH . 'includes/export/class-terawallet-csv-exporter.php';
+		public function onplaywallet_do_ajax_transaction_export() {
+			check_ajax_referer( 'onplaywallet-exporter-script', 'security' );
+			include_once WOO_WALLET_ABSPATH . 'includes/export/class-onplaywallet-csv-exporter.php';
 			$step = isset( $_POST['step'] ) ? absint( $_POST['step'] ) : 1;
 
-			$exporter = new TeraWallet_CSV_Exporter();
+			$exporter = new OnplayWallet_CSV_Exporter();
 
 			$exporter->set_step( $step );
 
@@ -129,7 +129,7 @@ if ( ! class_exists( 'Woo_Wallet_Ajax' ) ) {
 			}
 			$exporter->write_to_csv();
 			$query_args = array(
-				'nonce'    => wp_create_nonce( 'terawallet-transaction-csv' ),
+				'nonce'    => wp_create_nonce( 'onplaywallet-transaction-csv' ),
 				'action'   => 'download_export_csv',
 				'filename' => $exporter->get_filename(),
 			);
@@ -138,7 +138,7 @@ if ( ! class_exists( 'Woo_Wallet_Ajax' ) ) {
 					array(
 						'step'       => 'done',
 						'percentage' => 100,
-						'url'        => add_query_arg( $query_args, admin_url( 'admin.php?page=terawallet-exporter' ) ),
+						'url'        => add_query_arg( $query_args, admin_url( 'admin.php?page=onplaywallet-exporter' ) ),
 					)
 				);
 			} else {
@@ -155,7 +155,7 @@ if ( ! class_exists( 'Woo_Wallet_Ajax' ) ) {
 		/**
 		 * Search users for export transactions.
 		 */
-		public function terawallet_export_user_search() {
+		public function onplaywallet_export_user_search() {
 			check_ajax_referer( 'search-user', 'security' );
 			// Check permissions again and make sure we have what we need.
 			if ( ! get_wallet_user_capability() ) {

@@ -2,7 +2,7 @@
 /**
  * Helper class file.
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

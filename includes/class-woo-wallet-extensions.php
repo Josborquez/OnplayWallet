@@ -60,7 +60,7 @@ if ( ! class_exists( 'Woo_Wallet_Extensions_Settings' ) ) :
 			$screen    = get_current_screen();
 			$screen_id = $screen ? $screen->id : '';
 			wp_register_script( 'woo-wallet-admin-settings', woo_wallet()->plugin_url() . '/build/admin/settings.js', array( 'jquery' ), WOO_WALLET_PLUGIN_VERSION, true );
-			$woo_wallet_screen_id = sanitize_title( __( 'TeraWallet', 'woo-wallet' ) );
+			$woo_wallet_screen_id = sanitize_title( __( 'OnplayWallet', 'woo-wallet' ) );
 			if ( in_array( $screen_id, array( "{$woo_wallet_screen_id}_page_woo-wallet-extensions" ), true ) ) {
 				wp_enqueue_style( 'dashicons' );
 				wp_enqueue_style( 'wp-color-picker' );
@@ -292,7 +292,7 @@ if ( ! class_exists( 'Woo_Wallet_Extensions_Settings' ) ) :
 			</style>
 			<div class="addons-featured">
 				<div class="addons-banner-block">
-					<h1>Obtain Superpowers to get the best out of TeraWallet </h1>
+					<h1>Obtain Superpowers to get the best out of OnplayWallet </h1>
 					<p>These power boosting extensions can unlock the ultimate potential for your site.</p>
 					<div class="addons-banner-block-items">
 						<div class="addons-banner-block-item">
@@ -302,7 +302,7 @@ if ( ! class_exists( 'Woo_Wallet_Extensions_Settings' ) ) :
 							<div class="addons-banner-block-item-content">
 								<h3>Wallet Withdrawal</h3>
 								<p>Let your users withdraw their Wallet balance to bank and other digital accounts like PayPal with this awesome addon.</p>
-								<a href="https://standalonetech.com/product/wallet-withdrawal/" class="button addons-button addons-button-solid">
+								<a href="https://github.com/Josborquez/product/wallet-withdrawal/" class="button addons-button addons-button-solid">
 									$49 / Year		</a>
 							</div>
 						</div>
@@ -313,7 +313,7 @@ if ( ! class_exists( 'Woo_Wallet_Extensions_Settings' ) ) :
 							<div class="addons-banner-block-item-content">
 								<h3>Wallet Importer</h3>
 								<p>Wallet importer addon enables you to modify the Wallet balances of multiple or all users with just one CSV import, hassle free.</p>
-								<a href="https://standalonetech.com/product/wallet-importer/" class="button addons-button addons-button-solid">
+								<a href="https://github.com/Josborquez/product/wallet-importer/" class="button addons-button addons-button-solid">
 									$15	/ Year	</a>
 							</div>
 						</div>
@@ -324,7 +324,7 @@ if ( ! class_exists( 'Woo_Wallet_Extensions_Settings' ) ) :
 							<div class="addons-banner-block-item-content">
 								<h3>Wallet Coupons</h3>
 								<p>Wallet Coupons add-on is the coupon system of Wallet. Coupons are a great way to offer rewards to your customers, coupons to be automatically redeemed to the customer's wallet if its restrictions are met.</p>
-								<a href="https://standalonetech.com/product/wallet-coupons/" class="button addons-button addons-button-solid">
+								<a href="https://github.com/Josborquez/product/wallet-coupons/" class="button addons-button addons-button-solid">
 									$39	/ Year	</a>
 							</div>
 						</div>
@@ -340,7 +340,7 @@ if ( ! class_exists( 'Woo_Wallet_Extensions_Settings' ) ) :
 								</div>
 								<div class="addons-column-block-item-content">
 									<h3>Wallet AffiliateWP</h3>
-									<a href="https://standalonetech.com/product/wallet-affiliatewp/" class="button addons-button addons-button-solid">
+									<a href="https://github.com/Josborquez/product/wallet-affiliatewp/" class="button addons-button addons-button-solid">
 										$15	/ Year	</a>
 									<p>Pay AffiliateWP referrals as Wallet credit.</p>
 								</div>

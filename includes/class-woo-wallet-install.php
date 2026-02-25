@@ -2,7 +2,7 @@
 /**
  * Wallet plugin installation file
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

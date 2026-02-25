@@ -4,7 +4,7 @@
  *
  * @author Subrata Mal <m.subrata1991@gmail.com>
  * @since 1.2.5
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -59,7 +59,7 @@ if ( ! class_exists( 'WooWallet_API' ) ) {
 				// v2 controllers.
 				'WC_REST_Woo_Wallet_Controller',
 				// v3 controllers.
-				'WC_REST_TeraWallet_V3_Controller',
+				'WC_REST_OnplayWallet_V3_Controller',
 			);
 			foreach ( $controllers as $controller ) {
 				$woo_wallet_api = new $controller();

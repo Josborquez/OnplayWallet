@@ -2,7 +2,7 @@
 /**
  * WooCommerce checkout block partial payment
  *
- * @package StandaloneTech
+ * @package OnplayWallet
  */
 
 use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
