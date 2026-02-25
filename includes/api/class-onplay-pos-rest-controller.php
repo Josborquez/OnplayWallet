@@ -239,20 +239,16 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 
 	/**
 	 * Check POS API permissions.
-	 * Supports WooCommerce API keys and custom API key header.
+	 * Supports auto-generated API key and WooCommerce API keys.
 	 *
 	 * @param WP_REST_Request $request Request.
 	 * @return bool|WP_Error
 	 */
 	public function check_pos_permissions( $request ) {
-		// Check for OnplayPOS API key in header.
+		// Check for OnplayPOS API key in header (generated from admin panel).
 		$api_key = $request->get_header( 'X-Onplay-Api-Key' );
-		if ( $api_key ) {
-			$pos_settings   = get_option( '_wallet_settings_pos', array() );
-			$stored_api_key = isset( $pos_settings['pos_api_key'] ) ? $pos_settings['pos_api_key'] : '';
-			if ( ! empty( $stored_api_key ) && hash_equals( $stored_api_key, $api_key ) ) {
-				return true;
-			}
+		if ( $api_key && woo_wallet()->pos_connector->validate_api_key( $api_key ) ) {
+			return true;
 		}
 
 		// Fall back to WooCommerce REST API authentication.
@@ -274,20 +270,25 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function check_webhook_signature( $request ) {
-		$pos_settings   = get_option( '_wallet_settings_pos', array() );
-		$webhook_secret = isset( $pos_settings['pos_webhook_secret'] ) ? $pos_settings['pos_webhook_secret'] : '';
+		// Also accept API key as webhook auth (simpler for React apps).
+		$api_key = $request->get_header( 'X-Onplay-Api-Key' );
+		if ( $api_key && woo_wallet()->pos_connector->validate_api_key( $api_key ) ) {
+			return true;
+		}
 
-		if ( empty( $webhook_secret ) ) {
-			return new WP_Error( 'onplay_webhook_not_configured', __( 'Webhook secret not configured.', 'woo-wallet' ), array( 'status' => 500 ) );
+		$signing_secret = woo_wallet()->pos_connector->get_signing_secret();
+
+		if ( empty( $signing_secret ) ) {
+			return new WP_Error( 'onplay_webhook_not_configured', __( 'API credentials not generated yet. Go to OnplayWallet > OnplayPOS to generate them.', 'woo-wallet' ), array( 'status' => 500 ) );
 		}
 
 		$signature = $request->get_header( 'X-Onplay-Signature' );
 		if ( empty( $signature ) ) {
-			return new WP_Error( 'onplay_webhook_no_signature', __( 'Missing webhook signature.', 'woo-wallet' ), array( 'status' => 401 ) );
+			return new WP_Error( 'onplay_webhook_no_signature', __( 'Missing webhook signature or API key.', 'woo-wallet' ), array( 'status' => 401 ) );
 		}
 
 		$body            = $request->get_body();
-		$expected_sig    = hash_hmac( 'sha256', $body, $webhook_secret );
+		$expected_sig    = hash_hmac( 'sha256', $body, $signing_secret );
 
 		if ( ! hash_equals( $expected_sig, $signature ) ) {
 			return new WP_Error( 'onplay_webhook_invalid_signature', __( 'Invalid webhook signature.', 'woo-wallet' ), array( 'status' => 403 ) );
@@ -569,9 +570,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		}
 
 		// Validate token.
-		$api_secret    = isset( $pos_settings['pos_api_secret'] ) ? $pos_settings['pos_api_secret'] : wp_salt( 'auth' );
-		$expected_token = hash_hmac( 'sha256', $payload['email'] . '|' . $payload['timestamp'], $api_secret );
-		if ( ! isset( $payload['token'] ) || ! hash_equals( $expected_token, $payload['token'] ) ) {
+		if ( ! isset( $payload['token'] ) || ! woo_wallet()->pos_connector->validate_qr_token( $payload['email'], $payload['timestamp'], $payload['token'] ) ) {
 			return new WP_Error( 'onplay_qr_invalid_token', __( 'QR code validation failed.', 'woo-wallet' ), array( 'status' => 400 ) );
 		}
 

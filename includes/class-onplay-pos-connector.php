@@ -1,6 +1,12 @@
 <?php
 /**
- * OnplayPOS Connector - Handles communication with OnplayPOSv2
+ * OnplayPOS Connector - Manages integration between OnplayWallet and OnplayPOS (React)
+ *
+ * Architecture: OnplayPOS (React frontend at onplaypos.onplaygames.cl) calls
+ * the WordPress REST API endpoints exposed by this plugin. This class manages
+ * the configuration, API key generation, CORS, and QR code generation.
+ *
+ * Flow: OnplayPOS (React) → HTTP requests → OnplayWallet (WP REST API)
  *
  * @package OnplayWallet
  */
@@ -14,25 +20,25 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 	class OnplayPOS_Connector {
 
 		/**
-		 * POS API base URL.
+		 * POS origin URL (React app).
 		 *
 		 * @var string
 		 */
-		private $api_url = '';
+		private $pos_url = '';
 
 		/**
-		 * POS API key.
+		 * Generated API key for POS to authenticate with WordPress.
 		 *
 		 * @var string
 		 */
 		private $api_key = '';
 
 		/**
-		 * POS API secret.
+		 * Secret used for QR code token signing and webhook validation.
 		 *
 		 * @var string
 		 */
-		private $api_secret = '';
+		private $signing_secret = '';
 
 		/**
 		 * Whether POS integration is enabled.
@@ -40,6 +46,13 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 * @var bool
 		 */
 		private $enabled = false;
+
+		/**
+		 * Allowed CORS origins for POS.
+		 *
+		 * @var array
+		 */
+		private $allowed_origins = array();
 
 		/**
 		 * Class constructor.
@@ -53,309 +66,215 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 * Load POS settings from WordPress options.
 		 */
 		private function load_settings() {
-			$pos_settings     = get_option( '_wallet_settings_pos', array() );
-			$this->api_url    = isset( $pos_settings['pos_api_url'] ) ? trailingslashit( $pos_settings['pos_api_url'] ) : '';
-			$this->api_key    = isset( $pos_settings['pos_api_key'] ) ? $pos_settings['pos_api_key'] : '';
-			$this->api_secret = isset( $pos_settings['pos_api_secret'] ) ? $pos_settings['pos_api_secret'] : '';
-			$this->enabled    = isset( $pos_settings['pos_enable'] ) && 'on' === $pos_settings['pos_enable'];
+			$pos_settings         = get_option( '_wallet_settings_pos', array() );
+			$this->pos_url        = isset( $pos_settings['pos_api_url'] ) ? untrailingslashit( $pos_settings['pos_api_url'] ) : '';
+			$this->api_key        = get_option( '_onplay_pos_api_key', '' );
+			$this->signing_secret = get_option( '_onplay_pos_signing_secret', '' );
+			$this->enabled        = isset( $pos_settings['pos_enable'] ) && 'on' === $pos_settings['pos_enable'];
+
+			// Build allowed origins list.
+			$this->allowed_origins = array(
+				'https://onplaypos.onplaygames.cl',
+				'https://onplay.cl',
+				'https://www.onplay.cl',
+				'https://onplaygames.cl',
+				'https://www.onplaygames.cl',
+			);
+			if ( ! empty( $this->pos_url ) && ! in_array( $this->pos_url, $this->allowed_origins, true ) ) {
+				$this->allowed_origins[] = $this->pos_url;
+			}
 		}
 
 		/**
 		 * Initialize hooks.
 		 */
 		private function init_hooks() {
-			if ( ! $this->enabled ) {
-				return;
-			}
-			add_action( 'woo_wallet_transaction_recorded', array( $this, 'sync_transaction_to_pos' ), 10, 4 );
+			// Always add CORS support for POS endpoints, even if not fully enabled.
+			add_action( 'rest_api_init', array( $this, 'add_cors_support' ), 5 );
+			add_filter( 'rest_pre_serve_request', array( $this, 'handle_cors_preflight' ), 10, 4 );
 		}
 
 		/**
-		 * Check if POS integration is enabled and configured.
+		 * Check if POS integration is enabled.
 		 *
 		 * @return bool
 		 */
 		public function is_active() {
-			return $this->enabled && ! empty( $this->api_url ) && ! empty( $this->api_key );
+			return $this->enabled && ! empty( $this->api_key );
 		}
 
 		/**
-		 * Get authentication headers for POS API.
+		 * Get the POS URL.
 		 *
-		 * @return array
+		 * @return string
 		 */
-		private function get_auth_headers() {
-			$timestamp = time();
-			$signature = hash_hmac( 'sha256', $this->api_key . $timestamp, $this->api_secret );
+		public function get_pos_url() {
+			return $this->pos_url;
+		}
+
+		/**
+		 * Get the API key (for display - masked).
+		 *
+		 * @return string
+		 */
+		public function get_api_key_masked() {
+			if ( empty( $this->api_key ) ) {
+				return '';
+			}
+			return str_repeat( '*', max( 0, strlen( $this->api_key ) - 8 ) ) . substr( $this->api_key, -8 );
+		}
+
+		/**
+		 * Get the full API key.
+		 *
+		 * @return string
+		 */
+		public function get_api_key() {
+			return $this->api_key;
+		}
+
+		/**
+		 * Get the signing secret.
+		 *
+		 * @return string
+		 */
+		public function get_signing_secret() {
+			return $this->signing_secret;
+		}
+
+		/**
+		 * Generate a new API key pair for POS authentication.
+		 * The POS (React) uses this key in the X-Onplay-Api-Key header.
+		 *
+		 * @return array Array with 'api_key' and 'signing_secret'.
+		 */
+		public function generate_api_credentials() {
+			$api_key        = 'onplay_' . bin2hex( random_bytes( 24 ) );
+			$signing_secret = bin2hex( random_bytes( 32 ) );
+
+			update_option( '_onplay_pos_api_key', $api_key );
+			update_option( '_onplay_pos_signing_secret', $signing_secret );
+			update_option( '_onplay_pos_key_generated_at', current_time( 'mysql' ) );
+
+			$this->api_key        = $api_key;
+			$this->signing_secret = $signing_secret;
+
+			$this->log( 'New API credentials generated.' );
 
 			return array(
-				'X-API-Key'       => $this->api_key,
-				'X-Timestamp'     => $timestamp,
-				'X-Signature'     => $signature,
-				'Content-Type'    => 'application/json',
-				'Accept'          => 'application/json',
-				'X-Plugin-Source' => 'OnplayWallet/' . ONPLAY_WALLET_VERSION,
+				'api_key'        => $api_key,
+				'signing_secret' => $signing_secret,
 			);
 		}
 
 		/**
-		 * Make a request to the POS API.
-		 *
-		 * @param string $endpoint API endpoint.
-		 * @param string $method   HTTP method.
-		 * @param array  $data     Request data.
-		 * @return array|WP_Error Response data or WP_Error.
+		 * Revoke current API credentials.
 		 */
-		public function api_request( $endpoint, $method = 'GET', $data = array() ) {
-			if ( ! $this->is_active() ) {
-				return new WP_Error( 'onplay_pos_not_configured', __( 'OnplayPOS integration is not configured.', 'woo-wallet' ) );
+		public function revoke_api_credentials() {
+			delete_option( '_onplay_pos_api_key' );
+			delete_option( '_onplay_pos_signing_secret' );
+			delete_option( '_onplay_pos_key_generated_at' );
+
+			$this->api_key        = '';
+			$this->signing_secret = '';
+
+			$this->log( 'API credentials revoked.' );
+		}
+
+		/**
+		 * Validate an incoming API key from POS request.
+		 *
+		 * @param string $provided_key The key from the request header.
+		 * @return bool
+		 */
+		public function validate_api_key( $provided_key ) {
+			if ( empty( $this->api_key ) || empty( $provided_key ) ) {
+				return false;
 			}
+			return hash_equals( $this->api_key, $provided_key );
+		}
 
-			$url  = $this->api_url . ltrim( $endpoint, '/' );
-			$args = array(
-				'method'  => $method,
-				'headers' => $this->get_auth_headers(),
-				'timeout' => 30,
-			);
+		/**
+		 * Add CORS headers for POS REST API requests.
+		 */
+		public function add_cors_support() {
+			// Only for our onplay endpoints.
+			add_filter( 'rest_post_dispatch', array( $this, 'add_cors_headers' ), 10, 3 );
+		}
 
-			if ( ! empty( $data ) && in_array( $method, array( 'POST', 'PUT', 'PATCH' ), true ) ) {
-				$args['body'] = wp_json_encode( $data );
-			} elseif ( ! empty( $data ) && 'GET' === $method ) {
-				$url = add_query_arg( $data, $url );
-			}
+		/**
+		 * Add CORS headers to REST API responses for OnplayPOS endpoints.
+		 *
+		 * @param WP_REST_Response $response Response.
+		 * @param WP_REST_Server   $server   Server.
+		 * @param WP_REST_Request  $request  Request.
+		 * @return WP_REST_Response
+		 */
+		public function add_cors_headers( $response, $server, $request ) {
+			$route = $request->get_route();
 
-			$response = wp_remote_request( $url, $args );
-
-			if ( is_wp_error( $response ) ) {
-				$this->log( 'API Error: ' . $response->get_error_message(), 'error' );
+			// Only add CORS headers to our endpoints.
+			if ( strpos( $route, '/onplay/v1/' ) !== 0 && strpos( $route, '/wp/v2/wallet' ) !== 0 && strpos( $route, '/wc/' ) !== 0 ) {
 				return $response;
 			}
 
-			$code = wp_remote_retrieve_response_code( $response );
-			$body = wp_remote_retrieve_body( $response );
-			$data = json_decode( $body, true );
+			$origin = isset( $_SERVER['HTTP_ORIGIN'] ) ? sanitize_url( wp_unslash( $_SERVER['HTTP_ORIGIN'] ) ) : '';
 
-			if ( $code >= 400 ) {
-				$message = isset( $data['message'] ) ? $data['message'] : "HTTP {$code}";
-				$this->log( "API HTTP {$code}: {$message}", 'error' );
-				return new WP_Error( 'onplay_pos_api_error', $message, array( 'status' => $code ) );
+			if ( ! empty( $origin ) && in_array( $origin, $this->allowed_origins, true ) ) {
+				$response->header( 'Access-Control-Allow-Origin', $origin );
+				$response->header( 'Access-Control-Allow-Methods', 'GET, POST, OPTIONS' );
+				$response->header( 'Access-Control-Allow-Headers', 'Content-Type, X-Onplay-Api-Key, X-Onplay-Signature, Authorization' );
+				$response->header( 'Access-Control-Allow-Credentials', 'true' );
+				$response->header( 'Access-Control-Max-Age', '86400' );
 			}
 
-			return $data;
+			return $response;
 		}
 
 		/**
-		 * Test connectivity with the POS.
+		 * Handle CORS preflight (OPTIONS) requests for POS.
 		 *
-		 * @return array|WP_Error
+		 * @param bool             $served  Whether the request was served.
+		 * @param WP_HTTP_Response $result  Result.
+		 * @param WP_REST_Request  $request Request.
+		 * @param WP_REST_Server   $server  Server.
+		 * @return bool
 		 */
-		public function test_connection() {
-			return $this->api_request( 'api/ping' );
-		}
-
-		/**
-		 * Get balance from POS for a user.
-		 *
-		 * @param string $identifier User email or POS customer ID.
-		 * @return array|WP_Error
-		 */
-		public function get_pos_balance( $identifier ) {
-			return $this->api_request( 'api/wallet/balance', 'GET', array( 'identifier' => $identifier ) );
-		}
-
-		/**
-		 * Send a credit transaction to POS.
-		 *
-		 * @param string $identifier User email or POS customer ID.
-		 * @param float  $amount     Amount to credit.
-		 * @param string $reference  Transaction reference.
-		 * @param array  $meta       Additional meta data.
-		 * @return array|WP_Error
-		 */
-		public function pos_credit( $identifier, $amount, $reference = '', $meta = array() ) {
-			return $this->api_request(
-				'api/wallet/credit',
-				'POST',
-				array(
-					'identifier' => $identifier,
-					'amount'     => floatval( $amount ),
-					'reference'  => $reference,
-					'source'     => 'woocommerce',
-					'currency'   => get_woocommerce_currency(),
-					'meta'       => $meta,
-				)
-			);
-		}
-
-		/**
-		 * Send a debit transaction to POS.
-		 *
-		 * @param string $identifier User email or POS customer ID.
-		 * @param float  $amount     Amount to debit.
-		 * @param string $reference  Transaction reference.
-		 * @param array  $meta       Additional meta data.
-		 * @return array|WP_Error
-		 */
-		public function pos_debit( $identifier, $amount, $reference = '', $meta = array() ) {
-			return $this->api_request(
-				'api/wallet/debit',
-				'POST',
-				array(
-					'identifier' => $identifier,
-					'amount'     => floatval( $amount ),
-					'reference'  => $reference,
-					'source'     => 'woocommerce',
-					'currency'   => get_woocommerce_currency(),
-					'meta'       => $meta,
-				)
-			);
-		}
-
-		/**
-		 * Get transaction history from POS.
-		 *
-		 * @param string $identifier User email or POS customer ID.
-		 * @param int    $page       Page number.
-		 * @param int    $per_page   Items per page.
-		 * @return array|WP_Error
-		 */
-		public function get_pos_transactions( $identifier, $page = 1, $per_page = 20 ) {
-			return $this->api_request(
-				'api/wallet/transactions',
-				'GET',
-				array(
-					'identifier' => $identifier,
-					'page'       => $page,
-					'per_page'   => $per_page,
-				)
-			);
-		}
-
-		/**
-		 * Validate a POS payment QR code.
-		 *
-		 * @param string $qr_code  QR code data.
-		 * @param float  $amount   Payment amount.
-		 * @return array|WP_Error
-		 */
-		public function validate_qr_payment( $qr_code, $amount ) {
-			return $this->api_request(
-				'api/wallet/qr-validate',
-				'POST',
-				array(
-					'qr_code'  => sanitize_text_field( $qr_code ),
-					'amount'   => floatval( $amount ),
-					'source'   => 'woocommerce',
-					'currency' => get_woocommerce_currency(),
-				)
-			);
-		}
-
-		/**
-		 * Process a POS payment via QR code.
-		 *
-		 * @param string $qr_code  QR code data.
-		 * @param float  $amount   Payment amount.
-		 * @param string $reference Transaction reference.
-		 * @return array|WP_Error
-		 */
-		public function process_qr_payment( $qr_code, $amount, $reference = '' ) {
-			return $this->api_request(
-				'api/wallet/qr-pay',
-				'POST',
-				array(
-					'qr_code'   => sanitize_text_field( $qr_code ),
-					'amount'    => floatval( $amount ),
-					'reference' => $reference,
-					'source'    => 'woocommerce',
-					'currency'  => get_woocommerce_currency(),
-				)
-			);
-		}
-
-		/**
-		 * Register a WooCommerce customer in the POS system.
-		 *
-		 * @param int $user_id WordPress user ID.
-		 * @return array|WP_Error
-		 */
-		public function register_customer( $user_id ) {
-			$user = get_userdata( $user_id );
-			if ( ! $user ) {
-				return new WP_Error( 'invalid_user', __( 'Invalid user.', 'woo-wallet' ) );
+		public function handle_cors_preflight( $served, $result, $request, $server ) {
+			if ( 'OPTIONS' !== $request->get_method() ) {
+				return $served;
 			}
 
-			return $this->api_request(
-				'api/customers/register',
-				'POST',
-				array(
-					'email'      => $user->user_email,
-					'first_name' => $user->first_name,
-					'last_name'  => $user->last_name,
-					'phone'      => get_user_meta( $user_id, 'billing_phone', true ),
-					'source'     => 'woocommerce',
-					'external_id' => $user_id,
-				)
-			);
-		}
-
-		/**
-		 * Sync local wallet transaction to POS after recording.
-		 *
-		 * @param int    $transaction_id Transaction ID.
-		 * @param int    $user_id        User ID.
-		 * @param float  $amount         Amount.
-		 * @param string $type           credit or debit.
-		 */
-		public function sync_transaction_to_pos( $transaction_id, $user_id, $amount, $type ) {
-			if ( ! $this->is_active() ) {
-				return;
+			$route = $request->get_route();
+			if ( strpos( $route, '/onplay/v1/' ) !== 0 ) {
+				return $served;
 			}
 
-			$pos_settings = get_option( '_wallet_settings_pos', array() );
-			$sync_enabled = isset( $pos_settings['pos_auto_sync'] ) && 'on' === $pos_settings['pos_auto_sync'];
+			$origin = isset( $_SERVER['HTTP_ORIGIN'] ) ? sanitize_url( wp_unslash( $_SERVER['HTTP_ORIGIN'] ) ) : '';
 
-			if ( ! $sync_enabled ) {
-				return;
+			if ( ! empty( $origin ) && in_array( $origin, $this->allowed_origins, true ) ) {
+				$response = new WP_REST_Response();
+				$response->header( 'Access-Control-Allow-Origin', $origin );
+				$response->header( 'Access-Control-Allow-Methods', 'GET, POST, OPTIONS' );
+				$response->header( 'Access-Control-Allow-Headers', 'Content-Type, X-Onplay-Api-Key, X-Onplay-Signature, Authorization' );
+				$response->header( 'Access-Control-Allow-Credentials', 'true' );
+				$response->header( 'Access-Control-Max-Age', '86400' );
+				$response->set_status( 200 );
+				$server->send_headers( $response->get_headers() );
+				echo '{}';
+				return true;
 			}
 
-			// Avoid infinite loop: don't sync transactions that originated from POS.
-			$source = get_wallet_transaction_meta( $transaction_id, '_onplay_source', '' );
-			if ( 'pos' === $source ) {
-				return;
-			}
-
-			$user = get_userdata( $user_id );
-			if ( ! $user ) {
-				return;
-			}
-
-			$reference = 'WC-TXN-' . $transaction_id;
-
-			$result = null;
-			if ( 'credit' === $type ) {
-				$result = $this->pos_credit( $user->user_email, $amount, $reference );
-			} elseif ( 'debit' === $type ) {
-				$result = $this->pos_debit( $user->user_email, $amount, $reference );
-			}
-
-			if ( is_wp_error( $result ) ) {
-				update_wallet_transaction_meta( $transaction_id, '_pos_sync_status', 'failed', $user_id );
-				update_wallet_transaction_meta( $transaction_id, '_pos_sync_error', $result->get_error_message(), $user_id );
-				$this->log( "Sync failed for transaction #{$transaction_id}: " . $result->get_error_message(), 'error' );
-			} else {
-				update_wallet_transaction_meta( $transaction_id, '_pos_sync_status', 'synced', $user_id );
-				if ( isset( $result['transaction_id'] ) ) {
-					update_wallet_transaction_meta( $transaction_id, '_pos_transaction_id', $result['transaction_id'], $user_id );
-				}
-			}
+			return $served;
 		}
 
 		/**
 		 * Generate a wallet QR code payload for a user.
+		 * This is displayed in the customer's wallet page.
+		 * The POS scans this QR and calls /onplay/v1/pos/qr-pay.
 		 *
 		 * @param int $user_id WordPress user ID.
-		 * @return string|WP_Error QR payload or error.
+		 * @return string|WP_Error QR payload JSON or error.
 		 */
 		public function generate_wallet_qr( $user_id ) {
 			$user = get_userdata( $user_id );
@@ -365,7 +284,8 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 
 			$balance   = woo_wallet()->wallet->get_wallet_balance( $user_id, 'edit' );
 			$timestamp = time();
-			$token     = hash_hmac( 'sha256', $user->user_email . '|' . $timestamp, $this->api_secret ?: wp_salt( 'auth' ) );
+			$secret    = $this->signing_secret ?: wp_salt( 'auth' );
+			$token     = hash_hmac( 'sha256', $user->user_email . '|' . $timestamp, $secret );
 
 			$payload = array(
 				'source'    => 'onplay_wallet',
@@ -375,9 +295,44 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 				'currency'  => get_woocommerce_currency(),
 				'timestamp' => $timestamp,
 				'token'     => $token,
+				'site'      => home_url(),
 			);
 
 			return wp_json_encode( $payload );
+		}
+
+		/**
+		 * Validate a QR token.
+		 *
+		 * @param string $email     User email.
+		 * @param int    $timestamp QR generation timestamp.
+		 * @param string $token     HMAC token.
+		 * @return bool
+		 */
+		public function validate_qr_token( $email, $timestamp, $token ) {
+			$secret        = $this->signing_secret ?: wp_salt( 'auth' );
+			$expected_token = hash_hmac( 'sha256', $email . '|' . $timestamp, $secret );
+			return hash_equals( $expected_token, $token );
+		}
+
+		/**
+		 * Get integration status info.
+		 *
+		 * @return array
+		 */
+		public function get_status() {
+			$key_generated_at = get_option( '_onplay_pos_key_generated_at', '' );
+
+			return array(
+				'enabled'          => $this->enabled,
+				'active'           => $this->is_active(),
+				'pos_url'          => $this->pos_url,
+				'has_api_key'      => ! empty( $this->api_key ),
+				'api_key_masked'   => $this->get_api_key_masked(),
+				'key_generated_at' => $key_generated_at,
+				'allowed_origins'  => $this->allowed_origins,
+				'wallet_api_base'  => rest_url( 'onplay/v1/pos/' ),
+			);
 		}
 
 		/**

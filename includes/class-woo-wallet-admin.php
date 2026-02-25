@@ -1307,84 +1307,149 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 		 */
 		public function pos_status_page() {
 			$pos_connector = woo_wallet()->pos_connector;
-			$is_active     = $pos_connector->is_active();
 			$pos_settings  = get_option( '_wallet_settings_pos', array() );
+			$pos_enabled   = isset( $pos_settings['pos_enable'] ) && 'on' === $pos_settings['pos_enable'];
 
-			// Handle test connection request.
-			$test_result = null;
-			if ( isset( $_GET['test_connection'] ) && wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '', 'onplay_test_connection' ) ) {
-				$test_result = $pos_connector->test_connection();
+			// Handle generate credentials action.
+			$credentials_generated = false;
+			$new_credentials       = null;
+			if ( isset( $_POST['onplay_generate_credentials'] ) && wp_verify_nonce( isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '', 'onplay_generate_credentials' ) ) {
+				$new_credentials       = $pos_connector->generate_api_credentials();
+				$credentials_generated = true;
 			}
+
+			// Handle revoke credentials action.
+			$credentials_revoked = false;
+			if ( isset( $_POST['onplay_revoke_credentials'] ) && wp_verify_nonce( isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '', 'onplay_revoke_credentials' ) ) {
+				$pos_connector->revoke_api_credentials();
+				$credentials_revoked = true;
+			}
+
+			$is_active        = $pos_connector->is_active();
+			$has_key          = ! empty( $pos_connector->get_api_key() );
+			$key_generated_at = get_option( '_onplay_pos_key_generated_at', '' );
 			?>
 			<div class="wrap">
 				<h1><?php esc_html_e( 'OnplayPOS Integration', 'woo-wallet' ); ?></h1>
 
+				<?php if ( $credentials_generated && $new_credentials ) : ?>
+					<div class="notice notice-success">
+						<p><strong><?php esc_html_e( 'New API credentials generated. Copy them now - the API Key will not be shown again in full.', 'woo-wallet' ); ?></strong></p>
+					</div>
+					<div class="card" style="max-width:800px;background:#f0fff0;border-left:4px solid #00a32a;">
+						<h2><?php esc_html_e( 'Your new API Credentials', 'woo-wallet' ); ?></h2>
+						<p><?php esc_html_e( 'Copy these values and configure them in your OnplayPOS React app:', 'woo-wallet' ); ?></p>
+						<table class="form-table">
+							<tr>
+								<th><?php esc_html_e( 'API Key', 'woo-wallet' ); ?></th>
+								<td><code style="background:#fff;padding:8px 12px;font-size:14px;user-select:all;"><?php echo esc_html( $new_credentials['api_key'] ); ?></code></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Signing Secret', 'woo-wallet' ); ?></th>
+								<td><code style="background:#fff;padding:8px 12px;font-size:14px;user-select:all;"><?php echo esc_html( $new_credentials['signing_secret'] ); ?></code></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'API Base URL', 'woo-wallet' ); ?></th>
+								<td><code style="background:#fff;padding:8px 12px;font-size:14px;user-select:all;"><?php echo esc_url( rest_url( 'onplay/v1/pos/' ) ); ?></code></td>
+							</tr>
+						</table>
+						<p><strong><?php esc_html_e( 'Use in your OnplayPOS React app (.env):', 'woo-wallet' ); ?></strong></p>
+<pre style="background:#fff;padding:15px;border:1px solid #ccc;border-radius:4px;overflow-x:auto;">
+REACT_APP_WALLET_API_URL=<?php echo esc_url( rest_url( 'onplay/v1/pos/' ) ); ?>
+
+REACT_APP_WALLET_API_KEY=<?php echo esc_html( $new_credentials['api_key'] ); ?>
+
+REACT_APP_WALLET_SIGNING_SECRET=<?php echo esc_html( $new_credentials['signing_secret'] ); ?>
+</pre>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $credentials_revoked ) : ?>
+					<div class="notice notice-warning">
+						<p><?php esc_html_e( 'API credentials have been revoked. OnplayPOS will no longer be able to connect.', 'woo-wallet' ); ?></p>
+					</div>
+				<?php endif; ?>
+
+				<!-- Status Card -->
 				<div class="card" style="max-width:800px;">
-					<h2><?php esc_html_e( 'Connection Status', 'woo-wallet' ); ?></h2>
+					<h2><?php esc_html_e( 'Status', 'woo-wallet' ); ?></h2>
 					<table class="form-table">
 						<tr>
 							<th><?php esc_html_e( 'Integration', 'woo-wallet' ); ?></th>
 							<td>
 								<?php if ( $is_active ) : ?>
-									<span style="color:green;">&#9679;</span> <?php esc_html_e( 'Enabled & Configured', 'woo-wallet' ); ?>
+									<span style="color:green;">&#9679;</span> <?php esc_html_e( 'Active - POS can connect', 'woo-wallet' ); ?>
+								<?php elseif ( $pos_enabled && ! $has_key ) : ?>
+									<span style="color:orange;">&#9679;</span> <?php esc_html_e( 'Enabled but no API key generated yet', 'woo-wallet' ); ?>
 								<?php else : ?>
-									<span style="color:red;">&#9679;</span> <?php esc_html_e( 'Not configured', 'woo-wallet' ); ?>
-									- <a href="<?php echo esc_url( admin_url( 'admin.php?page=woo-wallet-settings' ) ); ?>"><?php esc_html_e( 'Configure Settings', 'woo-wallet' ); ?></a>
+									<span style="color:red;">&#9679;</span> <?php esc_html_e( 'Disabled', 'woo-wallet' ); ?>
+									- <a href="<?php echo esc_url( admin_url( 'admin.php?page=woo-wallet-settings' ) ); ?>"><?php esc_html_e( 'Enable in Settings', 'woo-wallet' ); ?></a>
 								<?php endif; ?>
 							</td>
 						</tr>
 						<tr>
-							<th><?php esc_html_e( 'POS API URL', 'woo-wallet' ); ?></th>
-							<td><code><?php echo esc_html( ! empty( $pos_settings['pos_api_url'] ) ? $pos_settings['pos_api_url'] : __( 'Not set', 'woo-wallet' ) ); ?></code></td>
+							<th><?php esc_html_e( 'OnplayPOS URL', 'woo-wallet' ); ?></th>
+							<td>
+								<?php if ( ! empty( $pos_settings['pos_api_url'] ) ) : ?>
+									<a href="<?php echo esc_url( $pos_settings['pos_api_url'] ); ?>" target="_blank"><?php echo esc_html( $pos_settings['pos_api_url'] ); ?></a>
+								<?php else : ?>
+									<?php esc_html_e( 'Not set', 'woo-wallet' ); ?>
+								<?php endif; ?>
+							</td>
 						</tr>
 						<tr>
-							<th><?php esc_html_e( 'Auto-sync', 'woo-wallet' ); ?></th>
-							<td><?php echo ( isset( $pos_settings['pos_auto_sync'] ) && 'on' === $pos_settings['pos_auto_sync'] ) ? esc_html__( 'Enabled', 'woo-wallet' ) : esc_html__( 'Disabled', 'woo-wallet' ); ?></td>
+							<th><?php esc_html_e( 'API Key', 'woo-wallet' ); ?></th>
+							<td>
+								<?php if ( $has_key ) : ?>
+									<code><?php echo esc_html( $pos_connector->get_api_key_masked() ); ?></code>
+									<?php if ( $key_generated_at ) : ?>
+										<br><small><?php echo esc_html( sprintf( __( 'Generated: %s', 'woo-wallet' ), $key_generated_at ) ); ?></small>
+									<?php endif; ?>
+								<?php else : ?>
+									<em><?php esc_html_e( 'No API key generated', 'woo-wallet' ); ?></em>
+								<?php endif; ?>
+							</td>
 						</tr>
 						<tr>
 							<th><?php esc_html_e( 'QR Payments', 'woo-wallet' ); ?></th>
-							<td><?php echo ( isset( $pos_settings['pos_enable_qr'] ) && 'on' === $pos_settings['pos_enable_qr'] ) ? esc_html__( 'Enabled', 'woo-wallet' ) : esc_html__( 'Disabled', 'woo-wallet' ); ?></td>
+							<td><?php echo ( isset( $pos_settings['pos_enable_qr'] ) && 'on' === $pos_settings['pos_enable_qr'] ) ? '<span style="color:green;">&#9679;</span> ' . esc_html__( 'Enabled', 'woo-wallet' ) : '<span style="color:gray;">&#9679;</span> ' . esc_html__( 'Disabled', 'woo-wallet' ); ?></td>
 						</tr>
 						<tr>
-							<th><?php esc_html_e( 'Sync Direction', 'woo-wallet' ); ?></th>
+							<th><?php esc_html_e( 'CORS Origins', 'woo-wallet' ); ?></th>
 							<td>
 								<?php
-								$directions = array(
-									'both'      => __( 'Bidirectional', 'woo-wallet' ),
-									'wc_to_pos' => __( 'WooCommerce -> POS', 'woo-wallet' ),
-									'pos_to_wc' => __( 'POS -> WooCommerce', 'woo-wallet' ),
-								);
-								$dir        = isset( $pos_settings['pos_sync_direction'] ) ? $pos_settings['pos_sync_direction'] : 'both';
-								echo esc_html( isset( $directions[ $dir ] ) ? $directions[ $dir ] : $dir );
+								$status = $pos_connector->get_status();
+								foreach ( $status['allowed_origins'] as $origin ) {
+									echo '<code>' . esc_html( $origin ) . '</code><br>';
+								}
 								?>
 							</td>
 						</tr>
 					</table>
 
-					<?php if ( $is_active ) : ?>
-						<p>
-							<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=woo-wallet-pos&test_connection=1' ), 'onplay_test_connection' ) ); ?>" class="button button-secondary">
-								<?php esc_html_e( 'Test Connection', 'woo-wallet' ); ?>
-							</a>
-						</p>
-
-						<?php if ( null !== $test_result ) : ?>
-							<?php if ( is_wp_error( $test_result ) ) : ?>
-								<div class="notice notice-error inline">
-									<p><strong><?php esc_html_e( 'Connection failed:', 'woo-wallet' ); ?></strong> <?php echo esc_html( $test_result->get_error_message() ); ?></p>
-								</div>
-							<?php else : ?>
-								<div class="notice notice-success inline">
-									<p><strong><?php esc_html_e( 'Connection successful!', 'woo-wallet' ); ?></strong></p>
-								</div>
-							<?php endif; ?>
+					<!-- Credential Actions -->
+					<div style="display:flex;gap:10px;margin-top:15px;">
+						<form method="post">
+							<?php wp_nonce_field( 'onplay_generate_credentials' ); ?>
+							<button type="submit" name="onplay_generate_credentials" value="1" class="button button-primary" onclick="return confirm('<?php echo esc_js( $has_key ? __( 'This will replace the existing API key. OnplayPOS will need to be updated with the new key. Continue?', 'woo-wallet' ) : __( 'Generate new API credentials for OnplayPOS?', 'woo-wallet' ) ); ?>');">
+								<?php echo $has_key ? esc_html__( 'Regenerate API Key', 'woo-wallet' ) : esc_html__( 'Generate API Key', 'woo-wallet' ); ?>
+							</button>
+						</form>
+						<?php if ( $has_key ) : ?>
+							<form method="post">
+								<?php wp_nonce_field( 'onplay_revoke_credentials' ); ?>
+								<button type="submit" name="onplay_revoke_credentials" value="1" class="button" style="color:#d63638;" onclick="return confirm('<?php echo esc_js( __( 'This will revoke the API key. OnplayPOS will immediately lose access. Continue?', 'woo-wallet' ) ); ?>');">
+									<?php esc_html_e( 'Revoke API Key', 'woo-wallet' ); ?>
+								</button>
+							</form>
 						<?php endif; ?>
-					<?php endif; ?>
+					</div>
 				</div>
 
+				<!-- API Endpoints -->
 				<div class="card" style="max-width:800px;margin-top:20px;">
-					<h2><?php esc_html_e( 'API Endpoints for OnplayPOS', 'woo-wallet' ); ?></h2>
-					<p><?php esc_html_e( 'Configure your OnplayPOS system to use these endpoints:', 'woo-wallet' ); ?></p>
+					<h2><?php esc_html_e( 'API Endpoints for OnplayPOS (React)', 'woo-wallet' ); ?></h2>
+					<p><?php esc_html_e( 'Your OnplayPOS React app calls these WordPress REST API endpoints:', 'woo-wallet' ); ?></p>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1395,65 +1460,80 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 						</thead>
 						<tbody>
 							<tr>
-								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/balance' ) ); ?></code></td>
+								<td><code>/onplay/v1/pos/balance?email=...</code></td>
 								<td>GET</td>
 								<td><?php esc_html_e( 'Get customer wallet balance', 'woo-wallet' ); ?></td>
 							</tr>
 							<tr>
-								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/credit' ) ); ?></code></td>
+								<td><code>/onplay/v1/pos/credit</code></td>
 								<td>POST</td>
-								<td><?php esc_html_e( 'Credit customer wallet (deposit)', 'woo-wallet' ); ?></td>
+								<td><?php esc_html_e( 'Credit customer wallet (deposit / refund)', 'woo-wallet' ); ?></td>
 							</tr>
 							<tr>
-								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/debit' ) ); ?></code></td>
+								<td><code>/onplay/v1/pos/debit</code></td>
 								<td>POST</td>
-								<td><?php esc_html_e( 'Debit customer wallet (POS payment)', 'woo-wallet' ); ?></td>
+								<td><?php esc_html_e( 'Debit customer wallet (POS sale payment)', 'woo-wallet' ); ?></td>
 							</tr>
 							<tr>
-								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/transactions' ) ); ?></code></td>
+								<td><code>/onplay/v1/pos/transactions?email=...</code></td>
 								<td>GET</td>
 								<td><?php esc_html_e( 'Get transaction history', 'woo-wallet' ); ?></td>
 							</tr>
 							<tr>
-								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/qr-pay' ) ); ?></code></td>
+								<td><code>/onplay/v1/pos/qr-pay</code></td>
 								<td>POST</td>
-								<td><?php esc_html_e( 'Process QR code payment', 'woo-wallet' ); ?></td>
+								<td><?php esc_html_e( 'Process QR code payment scanned at POS', 'woo-wallet' ); ?></td>
 							</tr>
 							<tr>
-								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/customer' ) ); ?></code></td>
+								<td><code>/onplay/v1/pos/customer?email=...</code></td>
 								<td>GET</td>
 								<td><?php esc_html_e( 'Look up customer by email or phone', 'woo-wallet' ); ?></td>
 							</tr>
 							<tr>
-								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/webhook' ) ); ?></code></td>
-								<td>POST</td>
-								<td><?php esc_html_e( 'Receive webhook events from POS', 'woo-wallet' ); ?></td>
-							</tr>
-							<tr>
-								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/status' ) ); ?></code></td>
+								<td><code>/onplay/v1/pos/status</code></td>
 								<td>GET</td>
-								<td><?php esc_html_e( 'Health check / connection status', 'woo-wallet' ); ?></td>
+								<td><?php esc_html_e( 'Health check / connection test', 'woo-wallet' ); ?></td>
 							</tr>
 						</tbody>
 					</table>
-					<p style="margin-top:10px;">
-						<strong><?php esc_html_e( 'Authentication:', 'woo-wallet' ); ?></strong>
-						<?php esc_html_e( 'Include the header', 'woo-wallet' ); ?> <code>X-Onplay-Api-Key: <?php echo esc_html( ! empty( $pos_settings['pos_api_key'] ) ? str_repeat( '*', strlen( $pos_settings['pos_api_key'] ) - 4 ) . substr( $pos_settings['pos_api_key'], -4 ) : 'NOT_SET' ); ?></code>
-					</p>
 				</div>
 
+				<!-- React Integration Guide -->
 				<div class="card" style="max-width:800px;margin-top:20px;">
-					<h2><?php esc_html_e( 'Webhook Configuration', 'woo-wallet' ); ?></h2>
-					<p><?php esc_html_e( 'Configure your OnplayPOS to send webhooks to:', 'woo-wallet' ); ?></p>
-					<p><code><?php echo esc_url( rest_url( 'onplay/v1/pos/webhook' ) ); ?></code></p>
-					<p><?php esc_html_e( 'Include the header:', 'woo-wallet' ); ?> <code>X-Onplay-Signature: HMAC-SHA256(body, webhook_secret)</code></p>
-					<p><strong><?php esc_html_e( 'Supported events:', 'woo-wallet' ); ?></strong></p>
-					<ul style="list-style:disc;padding-left:20px;">
-						<li><code>wallet.credit</code> - <?php esc_html_e( 'Credit a customer wallet from POS', 'woo-wallet' ); ?></li>
-						<li><code>wallet.debit</code> - <?php esc_html_e( 'Debit a customer wallet from POS', 'woo-wallet' ); ?></li>
-						<li><code>customer.created</code> - <?php esc_html_e( 'Create a new customer from POS', 'woo-wallet' ); ?></li>
-						<li><code>ping</code> - <?php esc_html_e( 'Test connectivity', 'woo-wallet' ); ?></li>
-					</ul>
+					<h2><?php esc_html_e( 'React Integration Guide', 'woo-wallet' ); ?></h2>
+					<p><?php esc_html_e( 'Example fetch call from your OnplayPOS React app:', 'woo-wallet' ); ?></p>
+<pre style="background:#23282d;color:#eee;padding:15px;border-radius:4px;overflow-x:auto;font-size:13px;">
+<span style="color:#9cdcfe;">// Get customer balance</span>
+<span style="color:#c586c0;">const</span> response = <span style="color:#c586c0;">await</span> <span style="color:#dcdcaa;">fetch</span>(
+  <span style="color:#ce9178;">`${WALLET_API_URL}balance?email=${email}`</span>,
+  {
+    <span style="color:#9cdcfe;">headers</span>: {
+      <span style="color:#ce9178;">'X-Onplay-Api-Key'</span>: WALLET_API_KEY,
+      <span style="color:#ce9178;">'Content-Type'</span>: <span style="color:#ce9178;">'application/json'</span>,
+    },
+  }
+);
+<span style="color:#c586c0;">const</span> data = <span style="color:#c586c0;">await</span> response.<span style="color:#dcdcaa;">json</span>();
+<span style="color:#9cdcfe;">// data = { success: true, balance: 15000, currency: "CLP", ... }</span>
+
+<span style="color:#9cdcfe;">// Charge customer wallet at POS</span>
+<span style="color:#c586c0;">const</span> charge = <span style="color:#c586c0;">await</span> <span style="color:#dcdcaa;">fetch</span>(
+  <span style="color:#ce9178;">`${WALLET_API_URL}debit`</span>,
+  {
+    <span style="color:#9cdcfe;">method</span>: <span style="color:#ce9178;">'POST'</span>,
+    <span style="color:#9cdcfe;">headers</span>: {
+      <span style="color:#ce9178;">'X-Onplay-Api-Key'</span>: WALLET_API_KEY,
+      <span style="color:#ce9178;">'Content-Type'</span>: <span style="color:#ce9178;">'application/json'</span>,
+    },
+    <span style="color:#9cdcfe;">body</span>: JSON.<span style="color:#dcdcaa;">stringify</span>({
+      <span style="color:#9cdcfe;">email</span>: <span style="color:#ce9178;">'customer@example.com'</span>,
+      <span style="color:#9cdcfe;">amount</span>: <span style="color:#b5cea8;">5000</span>,
+      <span style="color:#9cdcfe;">reference</span>: <span style="color:#ce9178;">'POS-SALE-001'</span>,
+      <span style="color:#9cdcfe;">note</span>: <span style="color:#ce9178;">'Venta en sucursal'</span>,
+    }),
+  }
+);
+</pre>
 				</div>
 			</div>
 			<?php

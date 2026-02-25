@@ -341,66 +341,22 @@ if ( ! class_exists( 'Woo_Wallet_Settings' ) ) :
 				array(
 					'name'  => 'pos_enable',
 					'label' => __( 'Enable OnplayPOS Integration', 'woo-wallet' ),
-					'desc'  => __( 'Enable wallet synchronization with OnplayPOS system.', 'woo-wallet' ),
+					'desc'  => __( 'Enable connection with OnplayPOS React app. API credentials are generated in the OnplayPOS admin page.', 'woo-wallet' ),
 					'type'  => 'checkbox',
 				),
 				array(
-					'name'  => 'pos_api_url',
-					'label' => __( 'POS API URL', 'woo-wallet' ),
-					'desc'  => __( 'The base URL of your OnplayPOS system (e.g., https://pos.yourdomain.com/).', 'woo-wallet' ),
-					'type'  => 'text',
-					'size'  => 'regular-text',
-				),
-				array(
-					'name'  => 'pos_api_key',
-					'label' => __( 'POS API Key', 'woo-wallet' ),
-					'desc'  => __( 'API key generated in your OnplayPOS settings.', 'woo-wallet' ),
-					'type'  => 'text',
-					'size'  => 'regular-text',
-				),
-				array(
-					'name'  => 'pos_api_secret',
-					'label' => __( 'POS API Secret', 'woo-wallet' ),
-					'desc'  => __( 'API secret for secure communication with OnplayPOS.', 'woo-wallet' ),
-					'type'  => 'text',
-					'size'  => 'regular-text',
-				),
-				array(
-					'name'  => 'pos_auto_sync',
-					'label' => __( 'Auto-sync Transactions', 'woo-wallet' ),
-					'desc'  => __( 'Automatically synchronize wallet transactions to OnplayPOS in real-time.', 'woo-wallet' ),
-					'type'  => 'checkbox',
-				),
-				array(
-					'name'    => 'pos_webhook_secret',
-					'label'   => __( 'Webhook Secret', 'woo-wallet' ),
-					'desc'    => sprintf(
-						/* translators: %s: webhook URL */
-						__( 'Secret key to validate incoming POS webhooks. Your webhook URL is: %s', 'woo-wallet' ),
-						'<code>' . esc_url( rest_url( 'onplay/v1/pos/webhook' ) ) . '</code>'
-					),
+					'name'    => 'pos_api_url',
+					'label'   => __( 'OnplayPOS URL', 'woo-wallet' ),
+					'desc'    => __( 'The URL where your OnplayPOS React app is deployed.', 'woo-wallet' ),
 					'type'    => 'text',
 					'size'    => 'regular-text',
-					'default' => wp_generate_password( 32, false ),
+					'default' => 'https://onplaypos.onplaygames.cl',
 				),
 				array(
 					'name'  => 'pos_enable_qr',
 					'label' => __( 'Enable QR Payments', 'woo-wallet' ),
-					'desc'  => __( 'Allow customers to pay at POS terminals using wallet QR codes.', 'woo-wallet' ),
+					'desc'  => __( 'Allow customers to display a QR code in their wallet to pay at OnplayPOS terminals.', 'woo-wallet' ),
 					'type'  => 'checkbox',
-				),
-				array(
-					'name'    => 'pos_sync_direction',
-					'label'   => __( 'Sync Direction', 'woo-wallet' ),
-					'desc'    => __( 'Choose how wallet data synchronizes between WooCommerce and POS.', 'woo-wallet' ),
-					'type'    => 'select',
-					'options' => array(
-						'both'       => __( 'Bidirectional (WooCommerce <-> POS)', 'woo-wallet' ),
-						'wc_to_pos'  => __( 'WooCommerce -> POS only', 'woo-wallet' ),
-						'pos_to_wc'  => __( 'POS -> WooCommerce only', 'woo-wallet' ),
-					),
-					'default' => 'both',
-					'size'    => 'regular-text wc-enhanced-select',
 				),
 			);
 			return apply_filters( 'woo_wallet_settings_filds', $settings_fields );
