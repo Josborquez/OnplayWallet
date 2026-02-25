@@ -341,44 +341,13 @@ if ( ! class_exists( 'Woo_Wallet_Settings' ) ) :
 				array(
 					'name'  => 'pos_enable',
 					'label' => __( 'Enable OnplayPOS Integration', 'woo-wallet' ),
-					'desc'  => __( 'Enable wallet synchronization with OnplayPOS system.', 'woo-wallet' ),
+					'desc'  => __( 'Enable wallet integration with OnplayPOS. When enabled, OnplayPOS can call this site\'s REST API to credit/debit wallets.', 'woo-wallet' ),
 					'type'  => 'checkbox',
 				),
 				array(
-					'name'  => 'pos_api_url',
-					'label' => __( 'POS API URL', 'woo-wallet' ),
-					'desc'  => __( 'The base URL of your OnplayPOS system (e.g., https://pos.yourdomain.com/).', 'woo-wallet' ),
-					'type'  => 'text',
-					'size'  => 'regular-text',
-				),
-				array(
-					'name'  => 'pos_api_key',
-					'label' => __( 'POS API Key', 'woo-wallet' ),
-					'desc'  => __( 'API key generated in your OnplayPOS settings.', 'woo-wallet' ),
-					'type'  => 'text',
-					'size'  => 'regular-text',
-				),
-				array(
-					'name'  => 'pos_api_secret',
-					'label' => __( 'POS API Secret', 'woo-wallet' ),
-					'desc'  => __( 'API secret for secure communication with OnplayPOS.', 'woo-wallet' ),
-					'type'  => 'text',
-					'size'  => 'regular-text',
-				),
-				array(
-					'name'  => 'pos_auto_sync',
-					'label' => __( 'Auto-sync Transactions', 'woo-wallet' ),
-					'desc'  => __( 'Automatically synchronize wallet transactions to OnplayPOS in real-time.', 'woo-wallet' ),
-					'type'  => 'checkbox',
-				),
-				array(
-					'name'    => 'pos_webhook_secret',
-					'label'   => __( 'Webhook Secret', 'woo-wallet' ),
-					'desc'    => sprintf(
-						/* translators: %s: webhook URL */
-						__( 'Secret key to validate incoming POS webhooks. Your webhook URL is: %s', 'woo-wallet' ),
-						'<code>' . esc_url( rest_url( 'onplay/v1/pos/webhook' ) ) . '</code>'
-					),
+					'name'    => 'pos_api_key',
+					'label'   => __( 'Inbound API Key', 'woo-wallet' ),
+					'desc'    => __( 'API key that OnplayPOS must send in the X-Onplay-Api-Key header when calling this site\'s REST API. Share this key with the POS system.', 'woo-wallet' ),
 					'type'    => 'text',
 					'size'    => 'regular-text',
 					'default' => wp_generate_password( 32, false ),
@@ -386,8 +355,20 @@ if ( ! class_exists( 'Woo_Wallet_Settings' ) ) :
 				array(
 					'name'  => 'pos_enable_qr',
 					'label' => __( 'Enable QR Payments', 'woo-wallet' ),
-					'desc'  => __( 'Allow customers to pay at POS terminals using wallet QR codes.', 'woo-wallet' ),
+					'desc'  => __( 'Allow customers to generate QR codes in their wallet for payment at POS terminals.', 'woo-wallet' ),
 					'type'  => 'checkbox',
+				),
+				array(
+					'name'    => 'pos_webhook_secret',
+					'label'   => __( 'Webhook Secret', 'woo-wallet' ),
+					'desc'    => sprintf(
+						/* translators: %s: webhook URL */
+						__( 'Secret key to validate incoming POS webhooks (HMAC-SHA256). Your webhook URL is: %s', 'woo-wallet' ),
+						'<code>' . esc_url( rest_url( 'onplay/v1/pos/webhook' ) ) . '</code>'
+					),
+					'type'    => 'text',
+					'size'    => 'regular-text',
+					'default' => wp_generate_password( 32, false ),
 				),
 				array(
 					'name'    => 'pos_sync_direction',
@@ -395,12 +376,32 @@ if ( ! class_exists( 'Woo_Wallet_Settings' ) ) :
 					'desc'    => __( 'Choose how wallet data synchronizes between WooCommerce and POS.', 'woo-wallet' ),
 					'type'    => 'select',
 					'options' => array(
-						'both'       => __( 'Bidirectional (WooCommerce <-> POS)', 'woo-wallet' ),
-						'wc_to_pos'  => __( 'WooCommerce -> POS only', 'woo-wallet' ),
-						'pos_to_wc'  => __( 'POS -> WooCommerce only', 'woo-wallet' ),
+						'pos_to_wc'  => __( 'POS -> WooCommerce only (Recommended)', 'woo-wallet' ),
+						'both'       => __( 'Bidirectional (requires outbound config)', 'woo-wallet' ),
+						'wc_to_pos'  => __( 'WooCommerce -> POS only (requires outbound config)', 'woo-wallet' ),
 					),
-					'default' => 'both',
+					'default' => 'pos_to_wc',
 					'size'    => 'regular-text wc-enhanced-select',
+				),
+				array(
+					'name'  => 'pos_api_url',
+					'label' => __( 'POS API URL (Optional)', 'woo-wallet' ),
+					'desc'  => __( 'Only required for outbound sync (WC -> POS). The base URL of the OnplayPOS API.', 'woo-wallet' ),
+					'type'  => 'text',
+					'size'  => 'regular-text',
+				),
+				array(
+					'name'  => 'pos_api_secret',
+					'label' => __( 'POS API Secret (Optional)', 'woo-wallet' ),
+					'desc'  => __( 'Only required for outbound sync (WC -> POS). Used for HMAC-SHA256 signature and QR token generation.', 'woo-wallet' ),
+					'type'  => 'text',
+					'size'  => 'regular-text',
+				),
+				array(
+					'name'  => 'pos_auto_sync',
+					'label' => __( 'Auto-sync to POS (Optional)', 'woo-wallet' ),
+					'desc'  => __( 'Automatically sync WooCommerce wallet transactions to OnplayPOS. Requires POS API URL and Secret above.', 'woo-wallet' ),
+					'type'  => 'checkbox',
 				),
 			);
 			return apply_filters( 'woo_wallet_settings_filds', $settings_fields );
