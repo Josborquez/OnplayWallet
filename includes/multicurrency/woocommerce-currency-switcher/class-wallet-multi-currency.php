@@ -3,7 +3,7 @@
  * Multicurrency support for FOX - Currency Switcher Professional for WooCommerce
  * By realmag777
  *
- * @package StandaloneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

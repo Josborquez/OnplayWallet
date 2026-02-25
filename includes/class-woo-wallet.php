@@ -1,8 +1,8 @@
 <?php
 /**
- * Main wallet calss
+ * Main wallet class
  *
- * @package StandaloneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -46,6 +46,13 @@ final class Woo_Wallet {
 	 * @var WooWallet_API
 	 */
 	public $rest_api = null;
+
+	/**
+	 * OnplayPOS connector instance.
+	 *
+	 * @var OnplayPOS_Connector
+	 */
+	public $pos_connector = null;
 
 	/**
 	 * Main instance
@@ -105,10 +112,13 @@ final class Woo_Wallet {
 		include_once WOO_WALLET_ABSPATH . 'includes/class-woo-wallet-cashback.php';
 		$this->cashback = new Woo_Wallet_Cashback();
 
+		include_once WOO_WALLET_ABSPATH . 'includes/class-onplay-pos-connector.php';
+		$this->pos_connector = new OnplayPOS_Connector();
+
 		include_once WOO_WALLET_ABSPATH . 'includes/class-woo-wallet-widgets.php';
 
 		if ( $this->is_request( 'admin' ) ) {
-			include_once WOO_WALLET_ABSPATH . 'includes/export/class-terawallet-csv-exporter.php';
+			include_once WOO_WALLET_ABSPATH . 'includes/export/class-onplaywallet-csv-exporter.php';
 			include_once WOO_WALLET_ABSPATH . 'includes/class-woo-wallet-settings.php';
 			include_once WOO_WALLET_ABSPATH . 'includes/class-woo-wallet-extensions.php';
 			include_once WOO_WALLET_ABSPATH . 'includes/class-woo-wallet-admin.php';
@@ -253,6 +263,10 @@ final class Woo_Wallet {
 		include_once WOO_WALLET_ABSPATH . 'includes/api/class-woo-wallet-rest-controller.php';
 		$rest_controller = new WOO_Wallet_REST_Controller();
 		$rest_controller->register_routes();
+
+		include_once WOO_WALLET_ABSPATH . 'includes/api/class-onplay-pos-rest-controller.php';
+		$pos_controller = new OnplayPOS_REST_Controller();
+		$pos_controller->register_routes();
 	}
 	/**
 	 * Add settings link to plugin list.

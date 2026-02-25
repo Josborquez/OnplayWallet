@@ -12,7 +12,7 @@
  *
  * @author  Subrata Mal
  * @version     1.1.8
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

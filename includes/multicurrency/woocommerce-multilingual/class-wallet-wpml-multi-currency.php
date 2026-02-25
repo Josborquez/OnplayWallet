@@ -3,7 +3,7 @@
  * Multicurrency support for WooCommerce Multilingual & Multicurrency with WPML
  * By OnTheGoSystems <http://www.onthegosystems.com/>
  *
- * @package StandaloneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

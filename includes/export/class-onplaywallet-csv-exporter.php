@@ -1,17 +1,17 @@
 <?php
 /**
- * TeraWallet exporter class file.
+ * OnplayWallet exporter class file.
  *
- * @package StandaloneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 /**
- * TeraWallet Exporter class.
+ * OnplayWallet Exporter class.
  */
-class TeraWallet_CSV_Exporter {
+class OnplayWallet_CSV_Exporter {
 
 	/**
 	 * The delimiter parameter sets the field delimiter (one character only).
@@ -54,7 +54,7 @@ class TeraWallet_CSV_Exporter {
 	 *
 	 * @var string
 	 */
-	protected $filename = 'terawallet-export.csv';
+	protected $filename = 'onplaywallet-export.csv';
 	/**
 	 * Current step.
 	 *
@@ -81,7 +81,7 @@ class TeraWallet_CSV_Exporter {
 	 * @return string
 	 */
 	public function get_delimiter() {
-		return apply_filters( "terawallet_{$this->export_type}_export_delimiter", $this->delimiter );
+		return apply_filters( "onplaywallet_{$this->export_type}_export_delimiter", $this->delimiter );
 	}
 	/**
 	 * Get default columns.
@@ -106,7 +106,7 @@ class TeraWallet_CSV_Exporter {
 				'amount'  => __( 'Amount', 'woo-wallet' ),
 			);
 		}
-		return apply_filters( "terawallet_{$this->export_type}_exporter_default_column_names", $default_column_names );
+		return apply_filters( "onplaywallet_{$this->export_type}_exporter_default_column_names", $default_column_names );
 	}
 	/**
 	 * Set exporter type
@@ -363,7 +363,7 @@ class TeraWallet_CSV_Exporter {
 		foreach ( $records as $record ) {
 			$file            = $this->get_file();
 			$record['email'] = ! isset( $record['email'] ) ? get_userdata( $record['user_id'] )->user_email : $record['email'];
-			$record          = apply_filters( 'terawallet_transaction_export_row', $record );
+			$record          = apply_filters( 'onplaywallet_transaction_export_row', $record );
 			$file           .= $this->export_row( $record );
 			@file_put_contents( $this->get_file_path(), $file );
 		}
@@ -386,7 +386,7 @@ class TeraWallet_CSV_Exporter {
 		}
 		fputcsv( $buffer, $export_row );
 
-		return apply_filters( 'terawallet_row_to_export', ob_get_clean(), $record );
+		return apply_filters( 'onplaywallet_row_to_export', ob_get_clean(), $record );
 	}
 
 	/**

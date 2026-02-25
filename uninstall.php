@@ -7,7 +7,7 @@
  * @author      Subrata Mal
  * @version 1.0.1
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {

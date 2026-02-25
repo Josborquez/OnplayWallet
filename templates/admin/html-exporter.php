@@ -2,20 +2,20 @@
 /**
  * Admin View: Wallet Transactions Export
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 wp_enqueue_script( 'selectWoo' );
-wp_enqueue_script( 'terawallet-exporter-script' );
-$exporter = new TeraWallet_CSV_Exporter();
+wp_enqueue_script( 'onplaywallet-exporter-script' );
+$exporter = new OnplayWallet_CSV_Exporter();
 ?>
 <div class="wrap">
 	<h1><?php esc_html_e( 'Export Transactions', 'woo-wallet' ); ?></h1>
-	<div class="terawallet-exporter-wrapper">
-		<form class="terawallet-exporter">
+	<div class="onplaywallet-exporter-wrapper">
+		<form class="onplaywallet-exporter">
 			<header>
 				<span class="spinner is-active"></span>
 				<h2><?php esc_html_e( 'Export transactions to a CSV file', 'woo-wallet' ); ?></h2>
@@ -26,18 +26,18 @@ $exporter = new TeraWallet_CSV_Exporter();
 					<tbody>
 						<tr>
 							<th scope="row">
-								<label for="terawallet-exporter-type"><?php esc_html_e( 'Wallet balance only?', 'woo-wallet' ); ?></label>
+								<label for="onplaywallet-exporter-type"><?php esc_html_e( 'Wallet balance only?', 'woo-wallet' ); ?></label>
 							</th>
 							<td>
-								<input type="checkbox" <?php checked( true ); ?> name="terawallet-exporter-type" id="terawallet-exporter-type" class="terawallet-exporter-type" value="1">
+								<input type="checkbox" <?php checked( true ); ?> name="onplaywallet-exporter-type" id="onplaywallet-exporter-type" class="onplaywallet-exporter-type" value="1">
 							</td>
 						</tr>
 						<tr class="export-transaction-settings-fields">
 							<th scope="row">
-								<label for="terawallet-exporter-columns"><?php esc_html_e( 'Which columns should be exported?', 'woo-wallet' ); ?></label>
+								<label for="onplaywallet-exporter-columns"><?php esc_html_e( 'Which columns should be exported?', 'woo-wallet' ); ?></label>
 							</th>
 							<td>
-								<select id="terawallet-exporter-columns" name="terawallet-exporter-columns" class="terawallet-exporter-columns wc-enhanced-select" style="width:100%;" multiple data-placeholder="<?php esc_attr_e( 'Export all columns', 'woo-wallet' ); ?>">
+								<select id="onplaywallet-exporter-columns" name="onplaywallet-exporter-columns" class="onplaywallet-exporter-columns wc-enhanced-select" style="width:100%;" multiple data-placeholder="<?php esc_attr_e( 'Export all columns', 'woo-wallet' ); ?>">
 									<?php
 									foreach ( $exporter->get_default_column_names() as $column_id => $column_name ) {
 										echo '<option value="' . esc_attr( $column_id ) . '">' . esc_html( $column_name ) . '</option>';
@@ -48,34 +48,34 @@ $exporter = new TeraWallet_CSV_Exporter();
 						</tr>
 						<tr>
 							<th scope="row">
-								<label for="terawallet-exporter-users"><?php esc_html_e( 'Which users should be exported?', 'woo-wallet' ); ?></label>
+								<label for="onplaywallet-exporter-users"><?php esc_html_e( 'Which users should be exported?', 'woo-wallet' ); ?></label>
 							</th>
 							<td>
-								<select id="terawallet-exporter-users" name="terawallet-exporter-users" class="terawallet-exporter-users" style="width:100%;" multiple data-placeholder="<?php esc_attr_e( 'Export all users', 'woo-wallet' ); ?>"></select>
+								<select id="onplaywallet-exporter-users" name="onplaywallet-exporter-users" class="onplaywallet-exporter-users" style="width:100%;" multiple data-placeholder="<?php esc_attr_e( 'Export all users', 'woo-wallet' ); ?>"></select>
 							</td>
 						</tr>
 						<tr class="export-transaction-settings-fields">
 							<th scope="row">
-								<label for="terawallet-exporter-from-date"><?php esc_html_e( 'From date', 'woo-wallet' ); ?></label>
+								<label for="onplaywallet-exporter-from-date"><?php esc_html_e( 'From date', 'woo-wallet' ); ?></label>
 							</th>
 							<td>
-								<input type="date" id="terawallet-exporter-from-date" name="terawallet-exporter-from-date" style="width: 100%" class="terawallet-exporter-from-date" />
+								<input type="date" id="onplaywallet-exporter-from-date" name="onplaywallet-exporter-from-date" style="width: 100%" class="onplaywallet-exporter-from-date" />
 							</td>
 						</tr>
 						<tr class="export-transaction-settings-fields">
 							<th scope="row">
-								<label for="terawallet-exporter-to-date"><?php esc_html_e( 'To date', 'woo-wallet' ); ?></label>
+								<label for="onplaywallet-exporter-to-date"><?php esc_html_e( 'To date', 'woo-wallet' ); ?></label>
 							</th>
 							<td>
-								<input type="date" id="terawallet-exporter-to-date" name="terawallet-exporter-to-date" style="width: 100%" class="terawallet-exporter-to-date" />
+								<input type="date" id="onplaywallet-exporter-to-date" name="onplaywallet-exporter-to-date" style="width: 100%" class="onplaywallet-exporter-to-date" />
 							</td>
 						</tr>
 					</tbody>
 				</table>
-				<progress class="terawallet-exporter-progress" max="100" value="50"></progress>
+				<progress class="onplaywallet-exporter-progress" max="100" value="50"></progress>
 			</section>
 			<div class="tw-actions">
-				<button type="submit" class="terawallet-exporter-button button button-primary" value="<?php esc_attr_e( 'Generate CSV', 'woo-wallet' ); ?>"><?php esc_html_e( 'Generate CSV', 'woo-wallet' ); ?></button>
+				<button type="submit" class="onplaywallet-exporter-button button button-primary" value="<?php esc_attr_e( 'Generate CSV', 'woo-wallet' ); ?>"><?php esc_html_e( 'Generate CSV', 'woo-wallet' ); ?></button>
 			</div>
 		</form>
 	</div>

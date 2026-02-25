@@ -2,7 +2,7 @@
 /**
  * WooCommerce block checkout support.
  *
- * @package StandaloneTech
+ * @package OnplayWallet
  */
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;

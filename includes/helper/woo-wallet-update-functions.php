@@ -4,7 +4,7 @@
  *
  * Functions for updating data.
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  * @version 1.0.8
  */
 

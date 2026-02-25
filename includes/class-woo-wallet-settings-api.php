@@ -5,7 +5,7 @@
  * @version 1.0.0
  *
  * @author Subrata Mal
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! class_exists( 'Woo_Wallet_Settings_API' ) ) :

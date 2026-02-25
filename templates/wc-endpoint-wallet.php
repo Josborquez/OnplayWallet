@@ -12,7 +12,7 @@
  *
  * @author  Subrata Mal
  * @version     1.1.8
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -90,6 +90,23 @@ if ( ! function_exists( 'is_wallet_tab_active' ) ) {
 		<div class="woo-wallet-balance-card">
 			<h3><?php esc_html_e( 'Total Balance', 'woo-wallet' ); ?></h3>
 			<p class="woo-wallet-price"><?php echo woo_wallet()->wallet->get_wallet_balance( get_current_user_id() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+			<?php
+			$pos_settings = get_option( '_wallet_settings_pos', array() );
+			if ( isset( $pos_settings['pos_enable'] ) && 'on' === $pos_settings['pos_enable'] && isset( $pos_settings['pos_enable_qr'] ) && 'on' === $pos_settings['pos_enable_qr'] ) :
+				$qr_payload = woo_wallet()->pos_connector->generate_wallet_qr( get_current_user_id() );
+				if ( ! is_wp_error( $qr_payload ) ) :
+					$qr_data_encoded = rawurlencode( $qr_payload );
+					$qr_image_url    = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . $qr_data_encoded;
+			?>
+				<div class="woo-wallet-qr-section" style="text-align:center;margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.2);">
+					<p style="margin-bottom:8px;font-size:0.85em;opacity:0.9;"><?php esc_html_e( 'Pay at POS with QR', 'woo-wallet' ); ?></p>
+					<img src="<?php echo esc_url( $qr_image_url ); ?>" alt="<?php esc_attr_e( 'Wallet QR Code', 'woo-wallet' ); ?>" style="width:150px;height:150px;background:#fff;padding:5px;border-radius:8px;" />
+					<p style="margin-top:5px;font-size:0.75em;opacity:0.7;"><?php esc_html_e( 'Show this code at any OnplayPOS terminal', 'woo-wallet' ); ?></p>
+				</div>
+			<?php
+				endif;
+			endif;
+			?>
 		</div>
 
 		<!-- Navigation Tabs -->

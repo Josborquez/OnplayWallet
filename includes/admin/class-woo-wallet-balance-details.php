@@ -4,7 +4,7 @@
  *
  * Display wallet balance details page.
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 if ( ! class_exists( 'WP_List_Table' ) ) {

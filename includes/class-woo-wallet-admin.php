@@ -2,7 +2,7 @@
 /**
  * Wallet Admin file.
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
@@ -113,7 +113,7 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 			if ( ! $screen ) {
 				return;
 			}
-			$woo_wallet_screen_id = sanitize_title( __( 'TeraWallet', 'woo-wallet' ) );
+			$woo_wallet_screen_id = sanitize_title( __( 'OnplayWallet', 'woo-wallet' ) );
 			if ( in_array( $screen->id, array( "{$woo_wallet_screen_id}_page_woo-wallet-actions" ), true ) ) {
 				$screen->remove_help_tabs();
 			}
@@ -137,25 +137,25 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 			 *
 			 * @since 1.4.6
 			 */
-			$premium_plugings_url = apply_filters( 'terawallet_premium_plugin_url', 'https://standalonetech.com/products/' );
+			$premium_plugings_url = apply_filters( 'onplaywallet_premium_plugin_url', 'https://github.com/Josborquez/products/' );
 
 			/**
-			 * The TeraWallet API documentation URL.
+			 * The OnplayWallet API documentation URL.
 			 *
 			 * @since 1.4.6
 			 */
-			$api_docs_url = apply_filters( 'terawallet_apidocs_url', 'https://github.com/malsubrata/woo-wallet/wiki/API-V3' );
+			$api_docs_url = apply_filters( 'onplaywallet_apidocs_url', 'https://github.com/malsubrata/woo-wallet/wiki/API-V3' );
 
 			/**
-			 * The community TeraWallet support URL.
+			 * The community OnplayWallet support URL.
 			 *
 			 * @since 1.4.6
 			 */
-			$community_support_url = apply_filters( 'terawallet_community_support_url', 'https://standalonetech.com/forums/forum/terawallet/' );
+			$community_support_url = apply_filters( 'onplaywallet_community_support_url', 'https://github.com/Josborquez/forums/forum/onplaywallet/' );
 
 			$row_meta = array(
-				'plugins' => '<a href="' . esc_url( $premium_plugings_url ) . '" aria-label="' . esc_attr__( 'View TeraWallet premium plugins', 'woo-wallet' ) . '">' . esc_html__( 'Premium plugins', 'woo-wallet' ) . '</a>',
-				'apidocs' => '<a href="' . esc_url( $api_docs_url ) . '" aria-label="' . esc_attr__( 'View TeraWallet API docs', 'woo-wallet' ) . '">' . esc_html__( 'API docs', 'woo-wallet' ) . '</a>',
+				'plugins' => '<a href="' . esc_url( $premium_plugings_url ) . '" aria-label="' . esc_attr__( 'View OnplayWallet premium plugins', 'woo-wallet' ) . '">' . esc_html__( 'Premium plugins', 'woo-wallet' ) . '</a>',
+				'apidocs' => '<a href="' . esc_url( $api_docs_url ) . '" aria-label="' . esc_attr__( 'View OnplayWallet API docs', 'woo-wallet' ) . '">' . esc_html__( 'API docs', 'woo-wallet' ) . '</a>',
 				'support' => '<a href="' . esc_url( $community_support_url ) . '" aria-label="' . esc_attr__( 'Visit community forums', 'woo-wallet' ) . '">' . esc_html__( 'Support forum', 'woo-wallet' ) . '</a>',
 			);
 
@@ -192,7 +192,7 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 					</td>
 
 				</tr>
-				<?php do_action( 'after_terawallet_management_fields', $user ); ?>
+				<?php do_action( 'after_onplaywallet_management_fields', $user ); ?>
 			</table>
 
 			<?php
@@ -304,8 +304,8 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 		 * Download generated export CSV file.
 		 */
 		public function download_export_file() {
-			if ( isset( $_GET['action'], $_GET['nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nonce'] ) ), 'terawallet-transaction-csv' ) && 'download_export_csv' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
-				$exporter = new TeraWallet_CSV_Exporter();
+			if ( isset( $_GET['action'], $_GET['nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nonce'] ) ), 'onplaywallet-transaction-csv' ) && 'download_export_csv' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
+				$exporter = new OnplayWallet_CSV_Exporter();
 				if ( ! empty( $_GET['filename'] ) ) {
 					$exporter->set_filename( sanitize_text_field( wp_unslash( $_GET['filename'] ) ) );
 				}
@@ -317,22 +317,23 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 		 * Init admin menu
 		 */
 		public function admin_menu() {
-			$woo_wallet_menu_page_hook = add_menu_page( __( 'TeraWallet', 'woo-wallet' ), __( 'TeraWallet', 'woo-wallet' ), get_wallet_user_capability(), 'woo-wallet', array( $this, 'wallet_page' ), '', 59 );
+			$woo_wallet_menu_page_hook = add_menu_page( __( 'OnplayWallet', 'woo-wallet' ), __( 'OnplayWallet', 'woo-wallet' ), get_wallet_user_capability(), 'woo-wallet', array( $this, 'wallet_page' ), '', 59 );
 			add_action( "load-$woo_wallet_menu_page_hook", array( $this, 'handle_wallet_balance_adjustment' ) );
 			add_action( "load-$woo_wallet_menu_page_hook", array( $this, 'add_woo_wallet_details' ) );
 			$woo_wallet_menu_page_hook_view = add_submenu_page( 'null', __( 'Woo Wallet', 'woo-wallet' ), __( 'Woo Wallet', 'woo-wallet' ), get_wallet_user_capability(), 'woo-wallet-transactions', array( $this, 'transaction_details_page' ) );
 			add_action( "load-$woo_wallet_menu_page_hook_view", array( $this, 'add_woo_wallet_transaction_details_option' ) );
 			add_submenu_page( 'woo-wallet', __( 'Actions', 'woo-wallet' ), __( 'Actions', 'woo-wallet' ), get_wallet_user_capability(), 'woo-wallet-actions', array( $this, 'plugin_actions_page' ) );
+			add_submenu_page( 'woo-wallet', __( 'OnplayPOS', 'woo-wallet' ), __( 'OnplayPOS', 'woo-wallet' ), get_wallet_user_capability(), 'woo-wallet-pos', array( $this, 'pos_status_page' ) );
 
-			add_submenu_page( 'null', '', '', get_wallet_user_capability(), 'terawallet-exporter', array( $this, 'terawallet_exporter_page' ) );
+			add_submenu_page( 'null', '', '', get_wallet_user_capability(), 'onplaywallet-exporter', array( $this, 'onplaywallet_exporter_page' ) );
 		}
 		/**
 		 * Load exporter files.
 		 *
 		 * @return void
 		 */
-		public function terawallet_exporter_page() {
-			include_once WOO_WALLET_ABSPATH . 'includes/export/class-terawallet-csv-exporter.php';
+		public function onplaywallet_exporter_page() {
+			include_once WOO_WALLET_ABSPATH . 'includes/export/class-onplaywallet-csv-exporter.php';
 			include_once WOO_WALLET_ABSPATH . 'templates/admin/html-exporter.php';
 		}
 		/**
@@ -341,7 +342,7 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 		public function plugin_actions_page() {
 			$screen               = get_current_screen();
 			$wallet_actions       = new WOO_Wallet_Actions();
-			$woo_wallet_screen_id = sanitize_title( __( 'TeraWallet', 'woo-wallet' ) );
+			$woo_wallet_screen_id = sanitize_title( __( 'OnplayWallet', 'woo-wallet' ) );
 			if ( in_array( $screen->id, array( "{$woo_wallet_screen_id}_page_woo-wallet-actions" ), true ) && isset( $_GET['action'] ) && isset( $wallet_actions->actions[ $_GET['action'] ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 				$this->display_action_settings();
 			} else {
@@ -477,48 +478,48 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 			wp_enqueue_style( 'woo_wallet_admin_styles' );
 
 			// register exporter styles.
-			wp_register_style( 'terawallet-exporter-style', woo_wallet()->plugin_url() . '/build/admin/export.css', array(), WOO_WALLET_PLUGIN_VERSION );
+			wp_register_style( 'onplaywallet-exporter-style', woo_wallet()->plugin_url() . '/build/admin/export.css', array(), WOO_WALLET_PLUGIN_VERSION );
 			// Add RTL support.
-			wp_style_add_data( 'terawallet-exporter-style', 'rtl', 'replace' );
+			wp_style_add_data( 'onplaywallet-exporter-style', 'rtl', 'replace' );
 			// register exporter scripts.
-			wp_register_script( 'terawallet-exporter-script', woo_wallet()->plugin_url() . '/build/admin/export.js', array( 'jquery' ), WOO_WALLET_PLUGIN_VERSION, true );
+			wp_register_script( 'onplaywallet-exporter-script', woo_wallet()->plugin_url() . '/build/admin/export.js', array( 'jquery' ), WOO_WALLET_PLUGIN_VERSION, true );
 			wp_localize_script(
-				'terawallet-exporter-script',
-				'terawallet_export_params',
+				'onplaywallet-exporter-script',
+				'onplaywallet_export_params',
 				array(
 					'i18n'                => array(
 						'inputTooShort' => __( 'Please enter 3 or more characters', 'woo-wallet' ),
 						'no_resualt'    => __( 'No results found', 'woo-wallet' ),
 						'searching'     => __( 'Searching…', 'woo-wallet' ),
 					),
-					'export_nonce'        => wp_create_nonce( 'terawallet-exporter-script' ),
+					'export_nonce'        => wp_create_nonce( 'onplaywallet-exporter-script' ),
 					'search_user_nonce'   => wp_create_nonce( 'search-user' ),
 					'export_url'          => '',
 					'export_button_title' => __( 'Export', 'woo-wallet' ),
 				)
 			);
 
-			wp_register_script( 'terawallet_admin', woo_wallet()->plugin_url() . '/build/admin/main.js', array( 'jquery' ), WOO_WALLET_PLUGIN_VERSION, true );
+			wp_register_script( 'onplaywallet_admin', woo_wallet()->plugin_url() . '/build/admin/main.js', array( 'jquery' ), WOO_WALLET_PLUGIN_VERSION, true );
 			wp_localize_script(
-				'terawallet_admin',
-				'terawallet_admin_params',
+				'onplaywallet_admin',
+				'onplaywallet_admin_params',
 				apply_filters(
-					'terawallet_admin_js_params',
+					'onplaywallet_admin_js_params',
 					array(
 						'ajax_url'          => admin_url( 'admin-ajax.php' ),
-						'export_url'        => add_query_arg( array( 'page' => 'terawallet-exporter' ), admin_url( 'admin.php' ) ),
+						'export_url'        => add_query_arg( array( 'page' => 'onplaywallet-exporter' ), admin_url( 'admin.php' ) ),
 						'export_title'      => __( 'Export', 'woo-wallet' ),
 						'lock_unlock_nonce' => wp_create_nonce( 'lock-unlock-nonce' ),
 					)
 				)
 			);
 
-			if ( in_array( $screen_id, array( 'admin_page_terawallet-exporter' ), true ) ) {
+			if ( in_array( $screen_id, array( 'admin_page_onplaywallet-exporter' ), true ) ) {
 				wp_enqueue_style( 'select2' );
-				wp_enqueue_style( 'terawallet-exporter-style' );
+				wp_enqueue_style( 'onplaywallet-exporter-style' );
 			}
 
-			wp_enqueue_script( 'terawallet_admin' );
+			wp_enqueue_script( 'onplaywallet_admin' );
 		}
 
 		/**
@@ -719,7 +720,7 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 						} else {
 							$response = array(
 								'type'    => 'error',
-								'message' => __( 'There may be some issue with database connection. Please deactivate TeraWallet plugin and activate again.', 'woo-wallet' ),
+								'message' => __( 'There may be some issue with database connection. Please deactivate OnplayWallet plugin and activate again.', 'woo-wallet' ),
 							);
 						}
 					} elseif ( 'credit' === $payment_type ) {
@@ -745,12 +746,12 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 						} else {
 							$response = array(
 								'type'    => 'error',
-								'message' => __( 'There may be some issue with database connection. Please deactivate TeraWallet plugin and activate again.', 'woo-wallet' ),
+								'message' => __( 'There may be some issue with database connection. Please deactivate OnplayWallet plugin and activate again.', 'woo-wallet' ),
 							);
 						}
 					}
 				}
-				add_settings_error( '', 'terawallet', $response['message'], $response['type'] );
+				add_settings_error( '', 'onplaywallet', $response['message'], $response['type'] );
 			}
 		}
 
@@ -963,14 +964,14 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 				return $footer_text;
 			}
 			$current_screen                = get_current_screen();
-			$woo_wallet_settings_screen_id = sanitize_title( __( 'TeraWallet', 'woo-wallet' ) );
+			$woo_wallet_settings_screen_id = sanitize_title( __( 'OnplayWallet', 'woo-wallet' ) );
 			$woo_wallet_pages              = array( 'toplevel_page_woo-wallet', 'admin_page_woo-wallet-transactions', "{$woo_wallet_settings_screen_id}_page_woo-wallet-actions", "{$woo_wallet_settings_screen_id}_page_woo-wallet-extensions", "{$woo_wallet_settings_screen_id}_page_woo-wallet-settings" );
 			if ( isset( $current_screen->id ) && in_array( $current_screen->id, $woo_wallet_pages, true ) ) {
 				if ( ! get_option( 'woocommerce_wallet_admin_footer_text_rated' ) ) {
 					$footer_text = sprintf(
 						/* translators: Plugin name */
 						__( 'If you like %1$s please leave us a %2$s rating. A huge thanks in advance!', 'woo-wallet' ),
-						sprintf( '<strong>%s</strong>', esc_html__( 'TeraWallet', 'woo-wallet' ) ),
+						sprintf( '<strong>%s</strong>', esc_html__( 'OnplayWallet', 'woo-wallet' ) ),
 						'<a href="https://wordpress.org/support/plugin/woo-wallet/reviews?rate=5#new-post" target="_blank" class="wc-rating-link" data-rated="' . esc_attr__( 'Thanks :)', 'woo-wallet' ) . '">&#9733;&#9733;&#9733;&#9733;&#9733;</a>'
 					);
 					wc_enqueue_js(
@@ -982,7 +983,7 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 				"
 					);
 				} else {
-					$footer_text = __( 'Thank you for using TeraWallet.', 'woo-wallet' );
+					$footer_text = __( 'Thank you for using OnplayWallet.', 'woo-wallet' );
 				}
 			}
 			return $footer_text;
@@ -1131,13 +1132,13 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 			return $value;
 		}
 		/**
-		 * Add TeraWallet screen ids to WooCommerce
+		 * Add OnplayWallet screen ids to WooCommerce
 		 *
 		 * @param array $screen_ids screen_ids.
 		 * @return array
 		 */
 		public function woocommerce_screen_ids_callback( $screen_ids ) {
-			$woo_wallet_screen_id = sanitize_title( __( 'TeraWallet', 'woo-wallet' ) );
+			$woo_wallet_screen_id = sanitize_title( __( 'OnplayWallet', 'woo-wallet' ) );
 			$screen_ids[]         = "{$woo_wallet_screen_id}_page_woo-wallet-actions";
 			return $screen_ids;
 		}
@@ -1208,12 +1209,12 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 			?>
 			<div class="notice woo-wallet-promotional-notice">
 				<div class="thumbnail">
-					<img src="//plugins.svn.wordpress.org/woo-wallet/assets/icon-256x256.png" alt="Obtain Superpowers to get the best out of TeraWallet" class="">
+					<img src="//plugins.svn.wordpress.org/woo-wallet/assets/icon-256x256.png" alt="Obtain Superpowers to get the best out of OnplayWallet" class="">
 				</div>
 				<div class="content">
-					<h2 class=""><?php esc_html_e( 'Obtain Superpowers to get the best out of TeraWallet', 'woo-wallet' ); ?></h2>
+					<h2 class=""><?php esc_html_e( 'Obtain Superpowers to get the best out of OnplayWallet', 'woo-wallet' ); ?></h2>
 					<p><?php esc_html_e( 'Use superpowers to stand above the crowd. our high-octane add-ons are designed to boost your store wallet features.', 'woo-wallet' ); ?></p>
-					<a href="https://standalonetech.com/products/" class="button button-primary promo-btn" target="_blank"><?php esc_html_e( 'Learn More', 'woo-wallet' ); ?> →</a>
+					<a href="https://github.com/Josborquez/products/" class="button button-primary promo-btn" target="_blank"><?php esc_html_e( 'Learn More', 'woo-wallet' ); ?> →</a>
 				</div>
 				<span class="prmotion-close-icon dashicons dashicons-no-alt"></span>
 				<div class="clear"></div>
@@ -1298,6 +1299,163 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 					});
 				});
 			</script>
+			<?php
+		}
+
+		/**
+		 * OnplayPOS status page.
+		 */
+		public function pos_status_page() {
+			$pos_connector = woo_wallet()->pos_connector;
+			$is_active     = $pos_connector->is_active();
+			$pos_settings  = get_option( '_wallet_settings_pos', array() );
+
+			// Handle test connection request.
+			$test_result = null;
+			if ( isset( $_GET['test_connection'] ) && wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '', 'onplay_test_connection' ) ) {
+				$test_result = $pos_connector->test_connection();
+			}
+			?>
+			<div class="wrap">
+				<h1><?php esc_html_e( 'OnplayPOS Integration', 'woo-wallet' ); ?></h1>
+
+				<div class="card" style="max-width:800px;">
+					<h2><?php esc_html_e( 'Connection Status', 'woo-wallet' ); ?></h2>
+					<table class="form-table">
+						<tr>
+							<th><?php esc_html_e( 'Integration', 'woo-wallet' ); ?></th>
+							<td>
+								<?php if ( $is_active ) : ?>
+									<span style="color:green;">&#9679;</span> <?php esc_html_e( 'Enabled & Configured', 'woo-wallet' ); ?>
+								<?php else : ?>
+									<span style="color:red;">&#9679;</span> <?php esc_html_e( 'Not configured', 'woo-wallet' ); ?>
+									- <a href="<?php echo esc_url( admin_url( 'admin.php?page=woo-wallet-settings' ) ); ?>"><?php esc_html_e( 'Configure Settings', 'woo-wallet' ); ?></a>
+								<?php endif; ?>
+							</td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'POS API URL', 'woo-wallet' ); ?></th>
+							<td><code><?php echo esc_html( ! empty( $pos_settings['pos_api_url'] ) ? $pos_settings['pos_api_url'] : __( 'Not set', 'woo-wallet' ) ); ?></code></td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Auto-sync', 'woo-wallet' ); ?></th>
+							<td><?php echo ( isset( $pos_settings['pos_auto_sync'] ) && 'on' === $pos_settings['pos_auto_sync'] ) ? esc_html__( 'Enabled', 'woo-wallet' ) : esc_html__( 'Disabled', 'woo-wallet' ); ?></td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'QR Payments', 'woo-wallet' ); ?></th>
+							<td><?php echo ( isset( $pos_settings['pos_enable_qr'] ) && 'on' === $pos_settings['pos_enable_qr'] ) ? esc_html__( 'Enabled', 'woo-wallet' ) : esc_html__( 'Disabled', 'woo-wallet' ); ?></td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Sync Direction', 'woo-wallet' ); ?></th>
+							<td>
+								<?php
+								$directions = array(
+									'both'      => __( 'Bidirectional', 'woo-wallet' ),
+									'wc_to_pos' => __( 'WooCommerce -> POS', 'woo-wallet' ),
+									'pos_to_wc' => __( 'POS -> WooCommerce', 'woo-wallet' ),
+								);
+								$dir        = isset( $pos_settings['pos_sync_direction'] ) ? $pos_settings['pos_sync_direction'] : 'both';
+								echo esc_html( isset( $directions[ $dir ] ) ? $directions[ $dir ] : $dir );
+								?>
+							</td>
+						</tr>
+					</table>
+
+					<?php if ( $is_active ) : ?>
+						<p>
+							<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=woo-wallet-pos&test_connection=1' ), 'onplay_test_connection' ) ); ?>" class="button button-secondary">
+								<?php esc_html_e( 'Test Connection', 'woo-wallet' ); ?>
+							</a>
+						</p>
+
+						<?php if ( null !== $test_result ) : ?>
+							<?php if ( is_wp_error( $test_result ) ) : ?>
+								<div class="notice notice-error inline">
+									<p><strong><?php esc_html_e( 'Connection failed:', 'woo-wallet' ); ?></strong> <?php echo esc_html( $test_result->get_error_message() ); ?></p>
+								</div>
+							<?php else : ?>
+								<div class="notice notice-success inline">
+									<p><strong><?php esc_html_e( 'Connection successful!', 'woo-wallet' ); ?></strong></p>
+								</div>
+							<?php endif; ?>
+						<?php endif; ?>
+					<?php endif; ?>
+				</div>
+
+				<div class="card" style="max-width:800px;margin-top:20px;">
+					<h2><?php esc_html_e( 'API Endpoints for OnplayPOS', 'woo-wallet' ); ?></h2>
+					<p><?php esc_html_e( 'Configure your OnplayPOS system to use these endpoints:', 'woo-wallet' ); ?></p>
+					<table class="widefat striped">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Endpoint', 'woo-wallet' ); ?></th>
+								<th><?php esc_html_e( 'Method', 'woo-wallet' ); ?></th>
+								<th><?php esc_html_e( 'Description', 'woo-wallet' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/balance' ) ); ?></code></td>
+								<td>GET</td>
+								<td><?php esc_html_e( 'Get customer wallet balance', 'woo-wallet' ); ?></td>
+							</tr>
+							<tr>
+								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/credit' ) ); ?></code></td>
+								<td>POST</td>
+								<td><?php esc_html_e( 'Credit customer wallet (deposit)', 'woo-wallet' ); ?></td>
+							</tr>
+							<tr>
+								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/debit' ) ); ?></code></td>
+								<td>POST</td>
+								<td><?php esc_html_e( 'Debit customer wallet (POS payment)', 'woo-wallet' ); ?></td>
+							</tr>
+							<tr>
+								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/transactions' ) ); ?></code></td>
+								<td>GET</td>
+								<td><?php esc_html_e( 'Get transaction history', 'woo-wallet' ); ?></td>
+							</tr>
+							<tr>
+								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/qr-pay' ) ); ?></code></td>
+								<td>POST</td>
+								<td><?php esc_html_e( 'Process QR code payment', 'woo-wallet' ); ?></td>
+							</tr>
+							<tr>
+								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/customer' ) ); ?></code></td>
+								<td>GET</td>
+								<td><?php esc_html_e( 'Look up customer by email or phone', 'woo-wallet' ); ?></td>
+							</tr>
+							<tr>
+								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/webhook' ) ); ?></code></td>
+								<td>POST</td>
+								<td><?php esc_html_e( 'Receive webhook events from POS', 'woo-wallet' ); ?></td>
+							</tr>
+							<tr>
+								<td><code><?php echo esc_html( rest_url( 'onplay/v1/pos/status' ) ); ?></code></td>
+								<td>GET</td>
+								<td><?php esc_html_e( 'Health check / connection status', 'woo-wallet' ); ?></td>
+							</tr>
+						</tbody>
+					</table>
+					<p style="margin-top:10px;">
+						<strong><?php esc_html_e( 'Authentication:', 'woo-wallet' ); ?></strong>
+						<?php esc_html_e( 'Include the header', 'woo-wallet' ); ?> <code>X-Onplay-Api-Key: <?php echo esc_html( ! empty( $pos_settings['pos_api_key'] ) ? str_repeat( '*', strlen( $pos_settings['pos_api_key'] ) - 4 ) . substr( $pos_settings['pos_api_key'], -4 ) : 'NOT_SET' ); ?></code>
+					</p>
+				</div>
+
+				<div class="card" style="max-width:800px;margin-top:20px;">
+					<h2><?php esc_html_e( 'Webhook Configuration', 'woo-wallet' ); ?></h2>
+					<p><?php esc_html_e( 'Configure your OnplayPOS to send webhooks to:', 'woo-wallet' ); ?></p>
+					<p><code><?php echo esc_url( rest_url( 'onplay/v1/pos/webhook' ) ); ?></code></p>
+					<p><?php esc_html_e( 'Include the header:', 'woo-wallet' ); ?> <code>X-Onplay-Signature: HMAC-SHA256(body, webhook_secret)</code></p>
+					<p><strong><?php esc_html_e( 'Supported events:', 'woo-wallet' ); ?></strong></p>
+					<ul style="list-style:disc;padding-left:20px;">
+						<li><code>wallet.credit</code> - <?php esc_html_e( 'Credit a customer wallet from POS', 'woo-wallet' ); ?></li>
+						<li><code>wallet.debit</code> - <?php esc_html_e( 'Debit a customer wallet from POS', 'woo-wallet' ); ?></li>
+						<li><code>customer.created</code> - <?php esc_html_e( 'Create a new customer from POS', 'woo-wallet' ); ?></li>
+						<li><code>ping</code> - <?php esc_html_e( 'Test connectivity', 'woo-wallet' ); ?></li>
+					</ul>
+				</div>
+			</div>
 			<?php
 		}
 	}

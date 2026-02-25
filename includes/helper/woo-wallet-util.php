@@ -2,7 +2,7 @@
 /**
  * Utility file for this plugin.
  *
- * @package StandaleneTech
+ * @package OnplayWallet
  */
 
 use Automattic\WooCommerce\Utilities\OrderUtil;

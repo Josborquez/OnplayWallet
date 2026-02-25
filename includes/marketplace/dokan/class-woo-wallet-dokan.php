@@ -2,7 +2,7 @@
 /**
  * Woo Wallet Dokan Class
  *
- * @package StandaloneTech
+ * @package OnplayWallet
  * @since 1.1.10
  */
 
