@@ -71,11 +71,23 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		}
 
 		/**
-		 * Check if POS integration is enabled and configured.
+		 * Check if POS integration is enabled.
+		 * Returns true if the integration is enabled, even without outbound API credentials.
+		 * The inbound REST API (POS → WC) works with just the integration enabled.
 		 *
 		 * @return bool
 		 */
 		public function is_active() {
+			return $this->enabled;
+		}
+
+		/**
+		 * Check if outbound API calls (WC → POS) are configured.
+		 * Requires POS API URL and API key for HMAC authentication.
+		 *
+		 * @return bool
+		 */
+		public function is_outbound_configured() {
 			return $this->enabled && ! empty( $this->api_url ) && ! empty( $this->api_key );
 		}
 
@@ -107,8 +119,8 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 * @return array|WP_Error Response data or WP_Error.
 		 */
 		public function api_request( $endpoint, $method = 'GET', $data = array() ) {
-			if ( ! $this->is_active() ) {
-				return new WP_Error( 'onplay_pos_not_configured', __( 'OnplayPOS integration is not configured.', 'woo-wallet' ) );
+			if ( ! $this->is_outbound_configured() ) {
+				return new WP_Error( 'onplay_pos_not_configured', __( 'OnplayPOS outbound API is not configured. Set POS API URL and credentials in settings, or use inbound mode (POS calls WC REST API).', 'woo-wallet' ) );
 			}
 
 			$url  = $this->api_url . ltrim( $endpoint, '/' );
@@ -308,7 +320,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 * @param string $type           credit or debit.
 		 */
 		public function sync_transaction_to_pos( $transaction_id, $user_id, $amount, $type ) {
-			if ( ! $this->is_active() ) {
+			if ( ! $this->is_outbound_configured() ) {
 				return;
 			}
 
