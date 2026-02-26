@@ -341,16 +341,49 @@ if ( ! class_exists( 'Woo_Wallet_Settings' ) ) :
 				array(
 					'name'  => 'pos_enable',
 					'label' => __( 'Enable OnplayPOS Integration', 'woo-wallet' ),
-					'desc'  => __( 'Enable wallet integration with OnplayPOS. When enabled, OnplayPOS can call this site\'s REST API to credit/debit wallets.', 'woo-wallet' ),
+					'desc'  => __( 'Enable wallet integration with OnplayPOS.', 'woo-wallet' ),
 					'type'  => 'checkbox',
 				),
 				array(
+					'name'  => 'pos_is_ssot',
+					'label' => __( 'POS is Source of Truth', 'woo-wallet' ),
+					'desc'  => __( 'When enabled, checkout queries and debits the POS for wallet payments. The local balance becomes a cache. When disabled, the plugin uses the local wallet (legacy mode).', 'woo-wallet' ),
+					'type'  => 'checkbox',
+				),
+				array(
+					'name'  => 'pos_api_url',
+					'label' => __( 'POS API URL', 'woo-wallet' ),
+					'desc'  => __( 'Base URL of the POS wallet-connector API. Example: https://onplaypos.onplaygames.cl/api/wallet-connector', 'woo-wallet' ),
+					'type'  => 'text',
+					'size'  => 'regular-text',
+				),
+				array(
 					'name'    => 'pos_api_key',
-					'label'   => __( 'Inbound API Key', 'woo-wallet' ),
-					'desc'    => __( 'API key that OnplayPOS must send in the X-Onplay-Api-Key header when calling this site\'s REST API. Share this key with the POS system.', 'woo-wallet' ),
+					'label'   => __( 'API Key', 'woo-wallet' ),
+					'desc'    => __( 'Shared API key sent in the X-Onplay-Api-Key header for authentication with the POS.', 'woo-wallet' ),
 					'type'    => 'text',
 					'size'    => 'regular-text',
 					'default' => wp_generate_password( 32, false ),
+				),
+				array(
+					'name'    => 'pos_webhook_secret',
+					'label'   => __( 'Webhook Secret', 'woo-wallet' ),
+					'desc'    => sprintf(
+						/* translators: %s: webhook URL */
+						__( 'Secret to validate incoming POS webhooks (HMAC-SHA256). Webhook URL: %s', 'woo-wallet' ),
+						'<code>' . esc_url( rest_url( 'onplay/v1/pos/webhook' ) ) . '</code>'
+					),
+					'type'    => 'text',
+					'size'    => 'regular-text',
+					'default' => wp_generate_password( 32, false ),
+				),
+				array(
+					'name'    => 'pos_api_timeout',
+					'label'   => __( 'API Timeout (seconds)', 'woo-wallet' ),
+					'desc'    => __( 'Timeout for outbound API calls to the POS.', 'woo-wallet' ),
+					'type'    => 'number',
+					'default' => 10,
+					'step'    => '1',
 				),
 				array(
 					'name'  => 'pos_enable_qr',
@@ -359,48 +392,29 @@ if ( ! class_exists( 'Woo_Wallet_Settings' ) ) :
 					'type'  => 'checkbox',
 				),
 				array(
-					'name'    => 'pos_webhook_secret',
-					'label'   => __( 'Webhook Secret', 'woo-wallet' ),
-					'desc'    => sprintf(
-						/* translators: %s: webhook URL */
-						__( 'Secret key to validate incoming POS webhooks (HMAC-SHA256). Your webhook URL is: %s', 'woo-wallet' ),
-						'<code>' . esc_url( rest_url( 'onplay/v1/pos/webhook' ) ) . '</code>'
-					),
-					'type'    => 'text',
-					'size'    => 'regular-text',
-					'default' => wp_generate_password( 32, false ),
-				),
-				array(
 					'name'    => 'pos_sync_direction',
 					'label'   => __( 'Sync Direction', 'woo-wallet' ),
 					'desc'    => __( 'Choose how wallet data synchronizes between WooCommerce and POS.', 'woo-wallet' ),
 					'type'    => 'select',
 					'options' => array(
 						'pos_to_wc'  => __( 'POS -> WooCommerce only (Recommended)', 'woo-wallet' ),
-						'both'       => __( 'Bidirectional (requires outbound config)', 'woo-wallet' ),
-						'wc_to_pos'  => __( 'WooCommerce -> POS only (requires outbound config)', 'woo-wallet' ),
+						'both'       => __( 'Bidirectional', 'woo-wallet' ),
+						'wc_to_pos'  => __( 'WooCommerce -> POS only', 'woo-wallet' ),
 					),
 					'default' => 'pos_to_wc',
 					'size'    => 'regular-text wc-enhanced-select',
 				),
 				array(
-					'name'  => 'pos_api_url',
-					'label' => __( 'POS API URL (Optional)', 'woo-wallet' ),
-					'desc'  => __( 'Only required for outbound sync (WC -> POS). The base URL of the OnplayPOS API.', 'woo-wallet' ),
-					'type'  => 'text',
-					'size'  => 'regular-text',
-				),
-				array(
 					'name'  => 'pos_api_secret',
-					'label' => __( 'POS API Secret (Optional)', 'woo-wallet' ),
-					'desc'  => __( 'Only required for outbound sync (WC -> POS). Used for HMAC-SHA256 signature and QR token generation.', 'woo-wallet' ),
+					'label' => __( 'POS API Secret (Legacy)', 'woo-wallet' ),
+					'desc'  => __( 'Used for legacy HMAC-SHA256 signature and QR token generation.', 'woo-wallet' ),
 					'type'  => 'text',
 					'size'  => 'regular-text',
 				),
 				array(
 					'name'  => 'pos_auto_sync',
-					'label' => __( 'Auto-sync to POS (Optional)', 'woo-wallet' ),
-					'desc'  => __( 'Automatically sync WooCommerce wallet transactions to OnplayPOS. Requires POS API URL and Secret above.', 'woo-wallet' ),
+					'label' => __( 'Auto-sync to POS', 'woo-wallet' ),
+					'desc'  => __( 'Automatically sync WooCommerce wallet transactions to the POS. Not needed when POS is Source of Truth.', 'woo-wallet' ),
 					'type'  => 'checkbox',
 				),
 			);
@@ -431,8 +445,63 @@ if ( ! class_exists( 'Woo_Wallet_Settings' ) ) :
 			echo '<div class="wallet-settings-wrap">';
 			$this->settings_api->show_navigation();
 			$this->settings_api->show_forms();
+			$this->render_pos_test_connection_button();
 			echo '</div>';
 			echo '</div>';
+		}
+
+		/**
+		 * Render the Test Connection button and inline JS for the POS settings tab.
+		 */
+		private function render_pos_test_connection_button() {
+			$nonce = wp_create_nonce( 'onplay_pos_test_connection' );
+			?>
+			<div id="onplay-pos-test-connection" style="margin-top:15px;display:none;">
+				<button type="button" class="button button-secondary" id="onplay-pos-test-btn">
+					<?php esc_html_e( 'Test POS Connection', 'woo-wallet' ); ?>
+				</button>
+				<span id="onplay-pos-test-result" style="margin-left:10px;"></span>
+			</div>
+			<script type="text/javascript">
+			jQuery(function($) {
+				// Show button only when POS settings tab is active.
+				function showTestBtn() {
+					var $posTab = $('a[href="#_wallet_settings_pos"]');
+					if ($posTab.length && $posTab.hasClass('nav-tab-active')) {
+						$('#onplay-pos-test-connection').show();
+					} else {
+						$('#onplay-pos-test-connection').hide();
+					}
+				}
+				showTestBtn();
+				$(document).on('click', '.nav-tab', function() {
+					setTimeout(showTestBtn, 100);
+				});
+
+				$('#onplay-pos-test-btn').on('click', function() {
+					var $btn    = $(this);
+					var $result = $('#onplay-pos-test-result');
+					$btn.prop('disabled', true);
+					$result.html('<?php echo esc_js( __( 'Testing...', 'woo-wallet' ) ); ?>');
+
+					$.post(ajaxurl, {
+						action: 'onplay_pos_test_connection',
+						_wpnonce: '<?php echo esc_js( $nonce ); ?>'
+					}, function(response) {
+						$btn.prop('disabled', false);
+						if (response.success) {
+							$result.html('<span style="color:green;">&#10004; ' + response.data.message + '</span>');
+						} else {
+							$result.html('<span style="color:red;">&#10008; ' + response.data.message + '</span>');
+						}
+					}).fail(function() {
+						$btn.prop('disabled', false);
+						$result.html('<span style="color:red;">&#10008; <?php echo esc_js( __( 'Request failed.', 'woo-wallet' ) ); ?></span>');
+					});
+				});
+			});
+			</script>
+			<?php
 		}
 
 		/**

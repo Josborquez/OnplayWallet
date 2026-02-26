@@ -2,6 +2,11 @@
 /**
  * OnplayPOS Connector - Handles communication with OnplayPOSv2
  *
+ * Supports two modes:
+ * 1. SSoT mode: POS is the single source of truth for wallet balance.
+ *    Uses /balance, /debit, /credit, /transactions, /customer, /status endpoints.
+ * 2. Legacy mode: Outbound sync of local transactions to POS.
+ *
  * @package OnplayWallet
  */
 
@@ -21,14 +26,14 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		private $api_url = '';
 
 		/**
-		 * POS API key.
+		 * POS API key (X-Onplay-Api-Key header).
 		 *
 		 * @var string
 		 */
 		private $api_key = '';
 
 		/**
-		 * POS API secret.
+		 * POS API secret (legacy HMAC).
 		 *
 		 * @var string
 		 */
@@ -40,6 +45,20 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 * @var bool
 		 */
 		private $enabled = false;
+
+		/**
+		 * Whether POS is source of truth.
+		 *
+		 * @var bool
+		 */
+		private $is_ssot = false;
+
+		/**
+		 * API timeout in seconds.
+		 *
+		 * @var int
+		 */
+		private $timeout = 10;
 
 		/**
 		 * Class constructor.
@@ -58,6 +77,10 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 			$this->api_key    = isset( $pos_settings['pos_api_key'] ) ? $pos_settings['pos_api_key'] : '';
 			$this->api_secret = isset( $pos_settings['pos_api_secret'] ) ? $pos_settings['pos_api_secret'] : '';
 			$this->enabled    = isset( $pos_settings['pos_enable'] ) && 'on' === $pos_settings['pos_enable'];
+			$this->is_ssot    = isset( $pos_settings['pos_is_ssot'] ) && 'on' === $pos_settings['pos_is_ssot'];
+			$this->timeout    = isset( $pos_settings['pos_api_timeout'] ) && intval( $pos_settings['pos_api_timeout'] ) > 0
+				? intval( $pos_settings['pos_api_timeout'] )
+				: 10;
 		}
 
 		/**
@@ -67,13 +90,14 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 			if ( ! $this->enabled ) {
 				return;
 			}
-			add_action( 'woo_wallet_transaction_recorded', array( $this, 'sync_transaction_to_pos' ), 10, 4 );
+			// Only auto-sync in non-SSoT mode (legacy).
+			if ( ! $this->is_ssot ) {
+				add_action( 'woo_wallet_transaction_recorded', array( $this, 'sync_transaction_to_pos' ), 10, 4 );
+			}
 		}
 
 		/**
 		 * Check if POS integration is enabled.
-		 * Returns true if the integration is enabled, even without outbound API credentials.
-		 * The inbound REST API (POS → WC) works with just the integration enabled.
 		 *
 		 * @return bool
 		 */
@@ -82,8 +106,16 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		}
 
 		/**
+		 * Check if POS is configured as Source of Truth.
+		 *
+		 * @return bool
+		 */
+		public function is_ssot_enabled() {
+			return $this->enabled && $this->is_ssot;
+		}
+
+		/**
 		 * Check if outbound API calls (WC → POS) are configured.
-		 * Requires POS API URL and API key for HMAC authentication.
 		 *
 		 * @return bool
 		 */
@@ -91,43 +123,185 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 			return $this->enabled && ! empty( $this->api_url ) && ! empty( $this->api_key );
 		}
 
-		/**
-		 * Get authentication headers for POS API.
-		 *
-		 * @return array
-		 */
-		private function get_auth_headers() {
-			$timestamp = time();
-			$signature = hash_hmac( 'sha256', $this->api_key . $timestamp, $this->api_secret );
+		// ──────────────────────────────────────────────────────────────────
+		// SSoT API methods (new wallet-connector endpoints)
+		// ──────────────────────────────────────────────────────────────────
 
-			return array(
-				'X-API-Key'       => $this->api_key,
-				'X-Timestamp'     => $timestamp,
-				'X-Signature'     => $signature,
-				'Content-Type'    => 'application/json',
-				'Accept'          => 'application/json',
-				'X-Plugin-Source' => 'OnplayWallet/' . ONPLAY_WALLET_VERSION,
-			);
+		/**
+		 * Consult balance from POS (SSoT).
+		 * GET /balance?email={email}
+		 *
+		 * @param string $email Customer email.
+		 * @return array|WP_Error { email, balance, currency }
+		 */
+		public function get_balance( $email ) {
+			return $this->request( 'GET', 'balance', null, array( 'email' => $email ) );
 		}
 
 		/**
-		 * Make a request to the POS API.
+		 * Request a debit at the POS (purchase in WooCommerce).
+		 * POST /debit
+		 *
+		 * @param string $email       Customer email.
+		 * @param float  $amount      Amount to debit.
+		 * @param string $reference   Transaction reference (e.g. WC-ORDER-123).
+		 * @param string $description Human-readable description.
+		 * @return array|WP_Error { success, transaction_id, balance, currency }
+		 */
+		public function debit( $email, $amount, $reference, $description ) {
+			return $this->request( 'POST', 'debit', array(
+				'email'       => $email,
+				'amount'      => floatval( $amount ),
+				'reference'   => $reference,
+				'description' => $description,
+			) );
+		}
+
+		/**
+		 * Request a credit at the POS (refund from WooCommerce).
+		 * POST /credit
+		 *
+		 * @param string $email       Customer email.
+		 * @param float  $amount      Amount to credit.
+		 * @param string $reference   Transaction reference (e.g. WC-REFUND-456).
+		 * @param string $description Human-readable description.
+		 * @return array|WP_Error { success, transaction_id, balance, currency }
+		 */
+		public function credit( $email, $amount, $reference, $description ) {
+			return $this->request( 'POST', 'credit', array(
+				'email'       => $email,
+				'amount'      => floatval( $amount ),
+				'reference'   => $reference,
+				'description' => $description,
+			) );
+		}
+
+		/**
+		 * Get transaction history from POS.
+		 * GET /transactions?email={email}&limit={limit}&page={page}
+		 *
+		 * @param string $email Customer email.
+		 * @param int    $limit Items per page.
+		 * @param int    $page  Page number.
+		 * @return array|WP_Error { transactions[], total, page, totalPages }
+		 */
+		public function get_transactions( $email, $limit = 20, $page = 1 ) {
+			return $this->request( 'GET', 'transactions', null, array(
+				'email' => $email,
+				'limit' => $limit,
+				'page'  => $page,
+			) );
+		}
+
+		/**
+		 * Look up customer in POS.
+		 * GET /customer?email={email}
+		 *
+		 * @param string $email Customer email.
+		 * @return array|WP_Error { email, name, phone, balance, currency, isActive }
+		 */
+		public function get_customer( $email ) {
+			return $this->request( 'GET', 'customer', null, array( 'email' => $email ) );
+		}
+
+		/**
+		 * Health check / ping.
+		 * GET /status
+		 *
+		 * @return array|WP_Error { status, timestamp, version }
+		 */
+		public function ping() {
+			return $this->request( 'GET', 'status' );
+		}
+
+		// ──────────────────────────────────────────────────────────────────
+		// Core HTTP transport
+		// ──────────────────────────────────────────────────────────────────
+
+		/**
+		 * Make a request to the POS wallet-connector API.
+		 *
+		 * Authentication: X-Onplay-Api-Key header.
+		 * Transport: wp_remote_request() with HTTPS.
+		 *
+		 * @param string     $method   HTTP method (GET, POST).
+		 * @param string     $endpoint Endpoint path relative to api_url (e.g. 'balance').
+		 * @param array|null $body     Request body for POST (will be JSON encoded).
+		 * @param array|null $query    Query parameters for GET.
+		 * @return array|WP_Error Decoded response body or WP_Error.
+		 */
+		private function request( $method, $endpoint, $body = null, $query = null ) {
+			if ( ! $this->is_outbound_configured() ) {
+				return new WP_Error(
+					'pos_not_configured',
+					__( 'POS API is not configured. Set POS API URL and API Key in settings.', 'woo-wallet' )
+				);
+			}
+
+			$url = trailingslashit( $this->api_url ) . ltrim( $endpoint, '/' );
+
+			if ( $query ) {
+				$url = add_query_arg( $query, $url );
+			}
+
+			$args = array(
+				'method'  => $method,
+				'timeout' => $this->timeout,
+				'headers' => array(
+					'Content-Type'     => 'application/json',
+					'Accept'           => 'application/json',
+					'X-Onplay-Api-Key' => $this->api_key,
+				),
+			);
+
+			if ( $body ) {
+				$args['body'] = wp_json_encode( $body );
+			}
+
+			$this->log( sprintf( '%s %s', $method, $url ), 'info' );
+
+			$response = wp_remote_request( $url, $args );
+
+			if ( is_wp_error( $response ) ) {
+				$this->log( 'API Error: ' . $response->get_error_message(), 'error' );
+				return $response;
+			}
+
+			$code         = wp_remote_retrieve_response_code( $response );
+			$raw_body     = wp_remote_retrieve_body( $response );
+			$decoded_body = json_decode( $raw_body, true );
+
+			if ( $code >= 400 ) {
+				$message = isset( $decoded_body['error'] ) ? $decoded_body['error'] : ( isset( $decoded_body['message'] ) ? $decoded_body['message'] : "HTTP {$code}" );
+				$this->log( "API HTTP {$code}: {$message}", 'error' );
+				return new WP_Error( 'pos_api_error', $message, array( 'status' => $code ) );
+			}
+
+			return $decoded_body;
+		}
+
+		// ──────────────────────────────────────────────────────────────────
+		// Legacy API methods (kept for backward compatibility)
+		// ──────────────────────────────────────────────────────────────────
+
+		/**
+		 * Legacy: Make a request using old HMAC auth scheme.
 		 *
 		 * @param string $endpoint API endpoint.
 		 * @param string $method   HTTP method.
 		 * @param array  $data     Request data.
-		 * @return array|WP_Error Response data or WP_Error.
+		 * @return array|WP_Error
 		 */
 		public function api_request( $endpoint, $method = 'GET', $data = array() ) {
 			if ( ! $this->is_outbound_configured() ) {
-				return new WP_Error( 'onplay_pos_not_configured', __( 'OnplayPOS outbound API is not configured. Set POS API URL and credentials in settings, or use inbound mode (POS calls WC REST API).', 'woo-wallet' ) );
+				return new WP_Error( 'onplay_pos_not_configured', __( 'OnplayPOS outbound API is not configured.', 'woo-wallet' ) );
 			}
 
 			$url  = $this->api_url . ltrim( $endpoint, '/' );
 			$args = array(
 				'method'  => $method,
-				'headers' => $this->get_auth_headers(),
-				'timeout' => 30,
+				'headers' => $this->get_legacy_auth_headers(),
+				'timeout' => $this->timeout,
 			);
 
 			if ( ! empty( $data ) && in_array( $method, array( 'POST', 'PUT', 'PATCH' ), true ) ) {
@@ -157,26 +331,51 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		}
 
 		/**
+		 * Legacy: Get HMAC authentication headers.
+		 *
+		 * @return array
+		 */
+		private function get_legacy_auth_headers() {
+			$timestamp = time();
+			$signature = hash_hmac( 'sha256', $this->api_key . $timestamp, $this->api_secret );
+
+			return array(
+				'X-API-Key'       => $this->api_key,
+				'X-Timestamp'     => $timestamp,
+				'X-Signature'     => $signature,
+				'Content-Type'    => 'application/json',
+				'Accept'          => 'application/json',
+				'X-Plugin-Source' => 'OnplayWallet/' . ONPLAY_WALLET_VERSION,
+			);
+		}
+
+		/**
 		 * Test connectivity with the POS.
 		 *
 		 * @return array|WP_Error
 		 */
 		public function test_connection() {
+			if ( $this->is_ssot ) {
+				return $this->ping();
+			}
 			return $this->api_request( 'api/ping' );
 		}
 
 		/**
-		 * Get balance from POS for a user.
+		 * Legacy: Get balance from POS.
 		 *
 		 * @param string $identifier User email or POS customer ID.
 		 * @return array|WP_Error
 		 */
 		public function get_pos_balance( $identifier ) {
+			if ( $this->is_ssot ) {
+				return $this->get_balance( $identifier );
+			}
 			return $this->api_request( 'api/wallet/balance', 'GET', array( 'identifier' => $identifier ) );
 		}
 
 		/**
-		 * Send a credit transaction to POS.
+		 * Legacy: Send a credit transaction to POS.
 		 *
 		 * @param string $identifier User email or POS customer ID.
 		 * @param float  $amount     Amount to credit.
@@ -185,6 +384,10 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 * @return array|WP_Error
 		 */
 		public function pos_credit( $identifier, $amount, $reference = '', $meta = array() ) {
+			if ( $this->is_ssot ) {
+				$description = isset( $meta['description'] ) ? $meta['description'] : '';
+				return $this->credit( $identifier, $amount, $reference, $description );
+			}
 			return $this->api_request(
 				'api/wallet/credit',
 				'POST',
@@ -200,7 +403,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		}
 
 		/**
-		 * Send a debit transaction to POS.
+		 * Legacy: Send a debit transaction to POS.
 		 *
 		 * @param string $identifier User email or POS customer ID.
 		 * @param float  $amount     Amount to debit.
@@ -209,6 +412,10 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 * @return array|WP_Error
 		 */
 		public function pos_debit( $identifier, $amount, $reference = '', $meta = array() ) {
+			if ( $this->is_ssot ) {
+				$description = isset( $meta['description'] ) ? $meta['description'] : '';
+				return $this->debit( $identifier, $amount, $reference, $description );
+			}
 			return $this->api_request(
 				'api/wallet/debit',
 				'POST',
@@ -224,7 +431,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		}
 
 		/**
-		 * Get transaction history from POS.
+		 * Legacy: Get transaction history from POS.
 		 *
 		 * @param string $identifier User email or POS customer ID.
 		 * @param int    $page       Page number.
@@ -232,6 +439,9 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 * @return array|WP_Error
 		 */
 		public function get_pos_transactions( $identifier, $page = 1, $per_page = 20 ) {
+			if ( $this->is_ssot ) {
+				return $this->get_transactions( $identifier, $per_page, $page );
+			}
 			return $this->api_request(
 				'api/wallet/transactions',
 				'GET',
@@ -246,8 +456,8 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		/**
 		 * Validate a POS payment QR code.
 		 *
-		 * @param string $qr_code  QR code data.
-		 * @param float  $amount   Payment amount.
+		 * @param string $qr_code QR code data.
+		 * @param float  $amount  Payment amount.
 		 * @return array|WP_Error
 		 */
 		public function validate_qr_payment( $qr_code, $amount ) {
@@ -266,8 +476,8 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		/**
 		 * Process a POS payment via QR code.
 		 *
-		 * @param string $qr_code  QR code data.
-		 * @param float  $amount   Payment amount.
+		 * @param string $qr_code   QR code data.
+		 * @param float  $amount    Payment amount.
 		 * @param string $reference Transaction reference.
 		 * @return array|WP_Error
 		 */
@@ -301,18 +511,18 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 				'api/customers/register',
 				'POST',
 				array(
-					'email'      => $user->user_email,
-					'first_name' => $user->first_name,
-					'last_name'  => $user->last_name,
-					'phone'      => get_user_meta( $user_id, 'billing_phone', true ),
-					'source'     => 'woocommerce',
+					'email'       => $user->user_email,
+					'first_name'  => $user->first_name,
+					'last_name'   => $user->last_name,
+					'phone'       => get_user_meta( $user_id, 'billing_phone', true ),
+					'source'      => 'woocommerce',
 					'external_id' => $user_id,
 				)
 			);
 		}
 
 		/**
-		 * Sync local wallet transaction to POS after recording.
+		 * Sync local wallet transaction to POS after recording (legacy mode only).
 		 *
 		 * @param int    $transaction_id Transaction ID.
 		 * @param int    $user_id        User ID.
@@ -333,7 +543,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 
 			// Avoid infinite loop: don't sync transactions that originated from POS.
 			$source = get_wallet_transaction_meta( $transaction_id, '_onplay_source', '' );
-			if ( 'pos' === $source ) {
+			if ( 'pos' === $source || 'pos_ssot' === $source ) {
 				return;
 			}
 
@@ -393,7 +603,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		}
 
 		/**
-		 * Log POS connector messages.
+		 * Log POS connector messages via WC_Logger.
 		 *
 		 * @param string $message Log message.
 		 * @param string $level   Log level (info, error, warning).
