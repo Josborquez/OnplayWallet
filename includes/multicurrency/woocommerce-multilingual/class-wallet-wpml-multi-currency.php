@@ -18,16 +18,16 @@ if ( ! class_exists( 'Wallet_WPML_Multi_currency' ) ) {
 		 * Class constructor.
 		 */
 		public function __construct() {
-			add_filter( 'woo_wallet_amount', array( __CLASS__, 'woo_wallet_amount' ), 10, 2 );
-			add_filter( 'woo_wallet_current_balance', array( $this, 'woo_wallet_current_balance' ), 10, 2 );
+			add_filter( 'onplay_wallet_amount', array( __CLASS__, 'onplay_wallet_amount' ), 10, 2 );
+			add_filter( 'onplay_wallet_current_balance', array( $this, 'onplay_wallet_current_balance' ), 10, 2 );
 
-			add_filter( 'woo_wallet_get_option__wallet_settings_general_max_topup_amount', array( $this, 'convert_settings_option' ) );
-			add_filter( 'woo_wallet_get_option__wallet_settings_general_min_topup_amount', array( $this, 'convert_settings_option' ) );
-			add_filter( 'woo_wallet_get_option__wallet_settings_general_min_transfer_amount', array( $this, 'convert_settings_option' ) );
+			add_filter( 'onplay_wallet_get_option__wallet_settings_general_max_topup_amount', array( $this, 'convert_settings_option' ) );
+			add_filter( 'onplay_wallet_get_option__wallet_settings_general_min_topup_amount', array( $this, 'convert_settings_option' ) );
+			add_filter( 'onplay_wallet_get_option__wallet_settings_general_min_transfer_amount', array( $this, 'convert_settings_option' ) );
 
-			add_filter( 'woo_wallet_form_cart_cashback_amount', array( $this, 'woo_wallet_form_cart_cashback_amount' ) );
+			add_filter( 'onplay_wallet_form_cart_cashback_amount', array( $this, 'onplay_wallet_form_cart_cashback_amount' ) );
 
-			add_filter( 'woo_wallet_rechargeable_product_id', array( $this, 'woo_wallet_rechargeable_product_id' ) );
+			add_filter( 'onplay_wallet_rechargeable_product_id', array( $this, 'onplay_wallet_rechargeable_product_id' ) );
 		}
 		/**
 		 * Filter translated product id.
@@ -35,7 +35,7 @@ if ( ! class_exists( 'Wallet_WPML_Multi_currency' ) ) {
 		 * @param int $product_id product_id.
 		 * @return int
 		 */
-		public function woo_wallet_rechargeable_product_id( $product_id ) {
+		public function onplay_wallet_rechargeable_product_id( $product_id ) {
 			return apply_filters( 'wpml_object_id', $product_id, 'product', true, apply_filters( 'wpml_current_language', null ) );
 		}
 		/**
@@ -62,7 +62,7 @@ if ( ! class_exists( 'Wallet_WPML_Multi_currency' ) ) {
 		 * @param string $currency currency.
 		 * @return float
 		 */
-		public static function woo_wallet_amount( $amount, $currency ) {
+		public static function onplay_wallet_amount( $amount, $currency ) {
 			global $woocommerce_wpml;
 			$multi_currency = $woocommerce_wpml->get_multi_currency();
 			return self::get_converted_amount( $amount, $currency, $multi_currency->get_client_currency() );
@@ -74,7 +74,7 @@ if ( ! class_exists( 'Wallet_WPML_Multi_currency' ) ) {
 		 * @param int   $user_id user_id.
 		 * @return float
 		 */
-		public function woo_wallet_current_balance( $balance, $user_id ) {
+		public function onplay_wallet_current_balance( $balance, $user_id ) {
 			$credit_amount = 0;
 			$debit_amount  = 0;
 			$credit_array  = get_wallet_transactions(
@@ -89,7 +89,7 @@ if ( ! class_exists( 'Wallet_WPML_Multi_currency' ) ) {
 				)
 			);
 			foreach ( $credit_array as $credit ) {
-				$credit_amount += self::woo_wallet_amount( $credit->amount, $credit->currency );
+				$credit_amount += self::onplay_wallet_amount( $credit->amount, $credit->currency );
 			}
 			$debit_array = get_wallet_transactions(
 				array(
@@ -103,7 +103,7 @@ if ( ! class_exists( 'Wallet_WPML_Multi_currency' ) ) {
 				)
 			);
 			foreach ( $debit_array as $debit ) {
-				$debit_amount += self::woo_wallet_amount( $debit->amount, $debit->currency );
+				$debit_amount += self::onplay_wallet_amount( $debit->amount, $debit->currency );
 			}
 			return max( 0, $credit_amount - $debit_amount );
 		}
@@ -127,16 +127,16 @@ if ( ! class_exists( 'Wallet_WPML_Multi_currency' ) ) {
 		 * @param float $cashback_amount cashback_amount.
 		 * @return float
 		 */
-		public function woo_wallet_form_cart_cashback_amount( $cashback_amount ) {
+		public function onplay_wallet_form_cart_cashback_amount( $cashback_amount ) {
 			global $woocommerce_wpml;
 			$multi_currency        = $woocommerce_wpml->get_multi_currency();
-			$cashback_rule         = woo_wallet()->settings_api->get_option( 'cashback_rule', '_wallet_settings_credit', 'cart' );
-			$global_cashbak_type   = woo_wallet()->settings_api->get_option( 'cashback_type', '_wallet_settings_credit', 'percent' );
-			$global_cashbak_amount = woo_wallet()->settings_api->get_option( 'cashback_amount', '_wallet_settings_credit', 0 );
-			$max_cashbak_amount    = self::get_converted_amount( floatval( woo_wallet()->settings_api->get_option( 'max_cashback_amount', '_wallet_settings_credit', 0 ) ), get_option( 'woocommerce_currency' ), get_woocommerce_currency() );
+			$cashback_rule         = onplay_wallet()->settings_api->get_option( 'cashback_rule', '_wallet_settings_credit', 'cart' );
+			$global_cashbak_type   = onplay_wallet()->settings_api->get_option( 'cashback_type', '_wallet_settings_credit', 'percent' );
+			$global_cashbak_amount = onplay_wallet()->settings_api->get_option( 'cashback_amount', '_wallet_settings_credit', 0 );
+			$max_cashbak_amount    = self::get_converted_amount( floatval( onplay_wallet()->settings_api->get_option( 'max_cashback_amount', '_wallet_settings_credit', 0 ) ), get_option( 'woocommerce_currency' ), get_woocommerce_currency() );
 			if ( 'cart' === $cashback_rule ) {
 				$cashback_amount = 0;
-				if ( woo_wallet()->settings_api->get_option( 'min_cart_amount', '_wallet_settings_credit', 10 ) != 0 && self::get_converted_amount( WC()->cart->get_subtotal( 'edit' ), get_option( 'woocommerce_currency' ), get_woocommerce_currency() ) >= woo_wallet()->settings_api->get_option( 'min_cart_amount', '_wallet_settings_credit', 0 ) ) {
+				if ( onplay_wallet()->settings_api->get_option( 'min_cart_amount', '_wallet_settings_credit', 10 ) != 0 && self::get_converted_amount( WC()->cart->get_subtotal( 'edit' ), get_option( 'woocommerce_currency' ), get_woocommerce_currency() ) >= onplay_wallet()->settings_api->get_option( 'min_cart_amount', '_wallet_settings_credit', 0 ) ) {
 					if ( 'percent' === $global_cashbak_type ) {
 						$percent_cashback_amount = wc()->cart->get_subtotal( 'edit' ) * ( $global_cashbak_amount / 100 );
 						if ( $max_cashbak_amount && $percent_cashback_amount > $max_cashbak_amount ) {

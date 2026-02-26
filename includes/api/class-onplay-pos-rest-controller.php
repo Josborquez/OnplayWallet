@@ -45,12 +45,12 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'email'   => array(
 							'type'              => 'string',
-							'description'       => __( 'Customer email address.', 'woo-wallet' ),
+							'description'       => __( 'Customer email address.', 'onplay-wallet' ),
 							'sanitize_callback' => 'sanitize_email',
 						),
 						'user_id' => array(
 							'type'              => 'integer',
-							'description'       => __( 'WordPress user ID.', 'woo-wallet' ),
+							'description'       => __( 'WordPress user ID.', 'onplay-wallet' ),
 							'sanitize_callback' => 'absint',
 						),
 					),
@@ -296,7 +296,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 
 		return new WP_Error(
 			'onplay_rest_unauthorized',
-			__( 'Authentication required. Provide X-Onplay-Api-Key header or WooCommerce API credentials.', 'woo-wallet' ),
+			__( 'Authentication required. Provide X-Onplay-Api-Key header or WooCommerce API credentials.', 'onplay-wallet' ),
 			array( 'status' => 401 )
 		);
 	}
@@ -312,12 +312,12 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$webhook_secret = isset( $pos_settings['pos_webhook_secret'] ) ? $pos_settings['pos_webhook_secret'] : '';
 
 		if ( empty( $webhook_secret ) ) {
-			return new WP_Error( 'onplay_webhook_not_configured', __( 'Webhook secret not configured.', 'woo-wallet' ), array( 'status' => 500 ) );
+			return new WP_Error( 'onplay_webhook_not_configured', __( 'Webhook secret not configured.', 'onplay-wallet' ), array( 'status' => 500 ) );
 		}
 
 		$signature = $request->get_header( 'X-Onplay-Signature' );
 		if ( empty( $signature ) ) {
-			return new WP_Error( 'onplay_webhook_no_signature', __( 'Missing webhook signature.', 'woo-wallet' ), array( 'status' => 401 ) );
+			return new WP_Error( 'onplay_webhook_no_signature', __( 'Missing webhook signature.', 'onplay-wallet' ), array( 'status' => 401 ) );
 		}
 
 		$body         = $request->get_body();
@@ -326,7 +326,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 
 		// Support both raw hash and sha256= prefixed signature.
 		if ( ! hash_equals( $expected_raw, $signature ) && ! hash_equals( $expected_pre, $signature ) ) {
-			return new WP_Error( 'onplay_webhook_invalid_signature', __( 'Invalid webhook signature.', 'woo-wallet' ), array( 'status' => 403 ) );
+			return new WP_Error( 'onplay_webhook_invalid_signature', __( 'Invalid webhook signature.', 'onplay-wallet' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -347,11 +347,11 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		} elseif ( $user_id ) {
 			$user = get_user_by( 'id', $user_id );
 		} else {
-			return new WP_Error( 'onplay_missing_identifier', __( 'Provide email or user_id.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_missing_identifier', __( 'Provide email or user_id.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! $user ) {
-			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
 
 		return $user;
@@ -369,7 +369,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			return $user;
 		}
 
-		$balance = woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
+		$balance = onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
 
 		return new WP_REST_Response(
 			array(
@@ -397,7 +397,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		}
 
 		if ( is_wallet_account_locked( $user->ID ) ) {
-			return new WP_Error( 'onplay_wallet_locked', __( 'Customer wallet is locked.', 'woo-wallet' ), array( 'status' => 403 ) );
+			return new WP_Error( 'onplay_wallet_locked', __( 'Customer wallet is locked.', 'onplay-wallet' ), array( 'status' => 403 ) );
 		}
 
 		$amount    = floatval( $request->get_param( 'amount' ) );
@@ -405,10 +405,10 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$note      = $request->get_param( 'note' );
 
 		if ( $amount <= 0 ) {
-			return new WP_Error( 'onplay_invalid_amount', __( 'Amount must be greater than zero.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_invalid_amount', __( 'Amount must be greater than zero.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
-		$details = __( 'Credit from OnplayPOS', 'woo-wallet' );
+		$details = __( 'Credit from OnplayPOS', 'onplay-wallet' );
 		if ( $reference ) {
 			$details .= ' #' . $reference;
 		}
@@ -416,10 +416,10 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			$details .= ' - ' . $note;
 		}
 
-		$transaction_id = woo_wallet()->wallet->credit( $user->ID, $amount, $details );
+		$transaction_id = onplay_wallet()->wallet->credit( $user->ID, $amount, $details );
 
 		if ( ! $transaction_id ) {
-			return new WP_Error( 'onplay_transaction_failed', __( 'Transaction could not be processed.', 'woo-wallet' ), array( 'status' => 500 ) );
+			return new WP_Error( 'onplay_transaction_failed', __( 'Transaction could not be processed.', 'onplay-wallet' ), array( 'status' => 500 ) );
 		}
 
 		// Mark as POS-originated to prevent sync loop.
@@ -428,7 +428,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			update_wallet_transaction_meta( $transaction_id, '_pos_reference', $reference, $user->ID );
 		}
 
-		$new_balance = woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
+		$new_balance = onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
 
 		return new WP_REST_Response(
 			array(
@@ -457,7 +457,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		}
 
 		if ( is_wallet_account_locked( $user->ID ) ) {
-			return new WP_Error( 'onplay_wallet_locked', __( 'Customer wallet is locked.', 'woo-wallet' ), array( 'status' => 403 ) );
+			return new WP_Error( 'onplay_wallet_locked', __( 'Customer wallet is locked.', 'onplay-wallet' ), array( 'status' => 403 ) );
 		}
 
 		$amount    = floatval( $request->get_param( 'amount' ) );
@@ -465,17 +465,17 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$note      = $request->get_param( 'note' );
 
 		if ( $amount <= 0 ) {
-			return new WP_Error( 'onplay_invalid_amount', __( 'Amount must be greater than zero.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_invalid_amount', __( 'Amount must be greater than zero.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		// Check sufficient balance.
-		$current_balance = floatval( woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' ) );
+		$current_balance = floatval( onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' ) );
 		if ( $amount > $current_balance ) {
 			return new WP_Error(
 				'onplay_insufficient_balance',
 				sprintf(
 					/* translators: %s: current balance */
-					__( 'Insufficient wallet balance. Current balance: %s', 'woo-wallet' ),
+					__( 'Insufficient wallet balance. Current balance: %s', 'onplay-wallet' ),
 					wc_price( $current_balance )
 				),
 				array(
@@ -486,7 +486,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$details = __( 'POS payment via OnplayPOS', 'woo-wallet' );
+		$details = __( 'POS payment via OnplayPOS', 'onplay-wallet' );
 		if ( $reference ) {
 			$details .= ' #' . $reference;
 		}
@@ -494,10 +494,10 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			$details .= ' - ' . $note;
 		}
 
-		$transaction_id = woo_wallet()->wallet->debit( $user->ID, $amount, $details );
+		$transaction_id = onplay_wallet()->wallet->debit( $user->ID, $amount, $details );
 
 		if ( ! $transaction_id ) {
-			return new WP_Error( 'onplay_transaction_failed', __( 'Transaction could not be processed.', 'woo-wallet' ), array( 'status' => 500 ) );
+			return new WP_Error( 'onplay_transaction_failed', __( 'Transaction could not be processed.', 'onplay-wallet' ), array( 'status' => 500 ) );
 		}
 
 		// Mark as POS-originated.
@@ -506,7 +506,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			update_wallet_transaction_meta( $transaction_id, '_pos_reference', $reference, $user->ID );
 		}
 
-		$new_balance = woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
+		$new_balance = onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
 
 		return new WP_REST_Response(
 			array(
@@ -585,7 +585,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 	public function process_qr_payment( $request ) {
 		$pos_settings = get_option( '_wallet_settings_pos', array() );
 		if ( ! isset( $pos_settings['pos_enable_qr'] ) || 'on' !== $pos_settings['pos_enable_qr'] ) {
-			return new WP_Error( 'onplay_qr_disabled', __( 'QR payments are not enabled.', 'woo-wallet' ), array( 'status' => 403 ) );
+			return new WP_Error( 'onplay_qr_disabled', __( 'QR payments are not enabled.', 'onplay-wallet' ), array( 'status' => 403 ) );
 		}
 
 		$qr_data   = $request->get_param( 'qr_data' );
@@ -596,41 +596,41 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		// Decode and validate QR payload.
 		$payload = json_decode( $qr_data, true );
 		if ( ! $payload || ! isset( $payload['source'] ) || 'onplay_wallet' !== $payload['source'] ) {
-			return new WP_Error( 'onplay_invalid_qr', __( 'Invalid or unrecognized QR code.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_invalid_qr', __( 'Invalid or unrecognized QR code.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		// Validate timestamp (QR codes expire after 5 minutes).
 		if ( isset( $payload['timestamp'] ) && ( time() - intval( $payload['timestamp'] ) ) > 300 ) {
-			return new WP_Error( 'onplay_qr_expired', __( 'QR code has expired. Please generate a new one.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_qr_expired', __( 'QR code has expired. Please generate a new one.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		// Validate token.
 		$api_secret    = isset( $pos_settings['pos_api_secret'] ) ? $pos_settings['pos_api_secret'] : wp_salt( 'auth' );
 		$expected_token = hash_hmac( 'sha256', $payload['email'] . '|' . $payload['timestamp'], $api_secret );
 		if ( ! isset( $payload['token'] ) || ! hash_equals( $expected_token, $payload['token'] ) ) {
-			return new WP_Error( 'onplay_qr_invalid_token', __( 'QR code validation failed.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_qr_invalid_token', __( 'QR code validation failed.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		// Resolve user.
 		$user = get_user_by( 'email', $payload['email'] );
 		if ( ! $user ) {
-			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
 
 		if ( is_wallet_account_locked( $user->ID ) ) {
-			return new WP_Error( 'onplay_wallet_locked', __( 'Customer wallet is locked.', 'woo-wallet' ), array( 'status' => 403 ) );
+			return new WP_Error( 'onplay_wallet_locked', __( 'Customer wallet is locked.', 'onplay-wallet' ), array( 'status' => 403 ) );
 		}
 
 		if ( $amount <= 0 ) {
-			return new WP_Error( 'onplay_invalid_amount', __( 'Amount must be greater than zero.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_invalid_amount', __( 'Amount must be greater than zero.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		// Check balance.
-		$balance = floatval( woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' ) );
+		$balance = floatval( onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' ) );
 		if ( $amount > $balance ) {
 			return new WP_Error(
 				'onplay_insufficient_balance',
-				__( 'Insufficient wallet balance for this payment.', 'woo-wallet' ),
+				__( 'Insufficient wallet balance for this payment.', 'onplay-wallet' ),
 				array(
 					'status'          => 400,
 					'current_balance' => $balance,
@@ -639,7 +639,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$details = __( 'QR payment at POS', 'woo-wallet' );
+		$details = __( 'QR payment at POS', 'onplay-wallet' );
 		if ( $terminal ) {
 			$details .= ' (' . $terminal . ')';
 		}
@@ -647,10 +647,10 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			$details .= ' #' . $reference;
 		}
 
-		$transaction_id = woo_wallet()->wallet->debit( $user->ID, $amount, $details );
+		$transaction_id = onplay_wallet()->wallet->debit( $user->ID, $amount, $details );
 
 		if ( ! $transaction_id ) {
-			return new WP_Error( 'onplay_transaction_failed', __( 'Payment could not be processed.', 'woo-wallet' ), array( 'status' => 500 ) );
+			return new WP_Error( 'onplay_transaction_failed', __( 'Payment could not be processed.', 'onplay-wallet' ), array( 'status' => 500 ) );
 		}
 
 		update_wallet_transaction_meta( $transaction_id, '_onplay_source', 'pos_qr', $user->ID );
@@ -659,7 +659,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			update_wallet_transaction_meta( $transaction_id, '_pos_reference', $reference, $user->ID );
 		}
 
-		$new_balance = woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
+		$new_balance = onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
 
 		return new WP_REST_Response(
 			array(
@@ -707,10 +707,10 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! $user ) {
-			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
 
-		$balance = woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
+		$balance = onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
 
 		return new WP_REST_Response(
 			array(
@@ -740,7 +740,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$event = isset( $body['event'] ) ? sanitize_text_field( $body['event'] ) : '';
 
 		if ( empty( $event ) ) {
-			return new WP_Error( 'onplay_webhook_no_event', __( 'Missing event type.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_webhook_no_event', __( 'Missing event type.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		$pos_settings    = get_option( '_wallet_settings_pos', array() );
@@ -807,12 +807,12 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$reference = isset( $data['reference'] ) ? sanitize_text_field( $data['reference'] ) : '';
 
 		if ( ! $email || $amount <= 0 ) {
-			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Invalid webhook data.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Invalid webhook data.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		$user = get_user_by( 'email', $email );
 		if ( ! $user ) {
-			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
 
 		// Check for duplicate webhook processing.
@@ -820,7 +820,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			global $wpdb;
 			$existing = $wpdb->get_var(
 				$wpdb->prepare(
-					"SELECT tm.transaction_id FROM {$wpdb->base_prefix}woo_wallet_transaction_meta tm WHERE tm.meta_key = '_pos_reference' AND tm.meta_value = %s LIMIT 1",
+					"SELECT tm.transaction_id FROM {$wpdb->base_prefix}onplay_wallet_transaction_meta tm WHERE tm.meta_key = '_pos_reference' AND tm.meta_value = %s LIMIT 1",
 					$reference
 				)
 			);
@@ -836,12 +836,12 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$details = __( 'Credit from OnplayPOS', 'woo-wallet' );
+		$details = __( 'Credit from OnplayPOS', 'onplay-wallet' );
 		if ( $reference ) {
 			$details .= ' #' . $reference;
 		}
 
-		$transaction_id = woo_wallet()->wallet->credit( $user->ID, $amount, $details );
+		$transaction_id = onplay_wallet()->wallet->credit( $user->ID, $amount, $details );
 		if ( $transaction_id ) {
 			update_wallet_transaction_meta( $transaction_id, '_onplay_source', 'pos', $user->ID );
 			if ( $reference ) {
@@ -851,7 +851,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 
 		// Update cache with POS-provided balance if available.
 		if ( isset( $data['balance'] ) ) {
-			update_user_meta( $user->ID, '_current_woo_wallet_balance', floatval( $data['balance'] ) );
+			update_user_meta( $user->ID, '_current_onplay_wallet_balance', floatval( $data['balance'] ) );
 		}
 
 		return new WP_REST_Response(
@@ -875,12 +875,12 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$reference = isset( $data['reference'] ) ? sanitize_text_field( $data['reference'] ) : '';
 
 		if ( ! $email || $amount <= 0 ) {
-			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Invalid webhook data.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Invalid webhook data.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		$user = get_user_by( 'email', $email );
 		if ( ! $user ) {
-			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
 
 		// Duplicate check.
@@ -888,7 +888,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			global $wpdb;
 			$existing = $wpdb->get_var(
 				$wpdb->prepare(
-					"SELECT tm.transaction_id FROM {$wpdb->base_prefix}woo_wallet_transaction_meta tm WHERE tm.meta_key = '_pos_reference' AND tm.meta_value = %s LIMIT 1",
+					"SELECT tm.transaction_id FROM {$wpdb->base_prefix}onplay_wallet_transaction_meta tm WHERE tm.meta_key = '_pos_reference' AND tm.meta_value = %s LIMIT 1",
 					$reference
 				)
 			);
@@ -904,12 +904,12 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$details = __( 'POS payment via OnplayPOS', 'woo-wallet' );
+		$details = __( 'POS payment via OnplayPOS', 'onplay-wallet' );
 		if ( $reference ) {
 			$details .= ' #' . $reference;
 		}
 
-		$transaction_id = woo_wallet()->wallet->debit( $user->ID, $amount, $details );
+		$transaction_id = onplay_wallet()->wallet->debit( $user->ID, $amount, $details );
 		if ( $transaction_id ) {
 			update_wallet_transaction_meta( $transaction_id, '_onplay_source', 'pos', $user->ID );
 			if ( $reference ) {
@@ -919,7 +919,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 
 		// Update cache with POS-provided balance if available.
 		if ( isset( $data['balance'] ) ) {
-			update_user_meta( $user->ID, '_current_woo_wallet_balance', floatval( $data['balance'] ) );
+			update_user_meta( $user->ID, '_current_onplay_wallet_balance', floatval( $data['balance'] ) );
 		}
 
 		return new WP_REST_Response(
@@ -942,15 +942,15 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$balance = isset( $data['balance'] ) ? floatval( $data['balance'] ) : null;
 
 		if ( ! $email || is_null( $balance ) ) {
-			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Invalid webhook data. Requires email and balance.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Invalid webhook data. Requires email and balance.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		$user = get_user_by( 'email', $email );
 		if ( ! $user ) {
-			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
 
-		update_user_meta( $user->ID, '_current_woo_wallet_balance', $balance );
+		update_user_meta( $user->ID, '_current_onplay_wallet_balance', $balance );
 
 		return new WP_REST_Response(
 			array(
@@ -971,7 +971,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 	private function handle_webhook_customer_created( $data ) {
 		$email = isset( $data['email'] ) ? sanitize_email( $data['email'] ) : '';
 		if ( ! $email ) {
-			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Missing customer email.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Missing customer email.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		// Check if customer already exists.
@@ -1018,7 +1018,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		if ( $phone ) {
 			update_user_meta( $customer_id, 'billing_phone', $phone );
 		}
-		update_user_meta( $customer_id, '_current_woo_wallet_balance', 0 );
+		update_user_meta( $customer_id, '_current_onplay_wallet_balance', 0 );
 		update_user_meta( $customer_id, '_onplay_pos_customer', true );
 
 		return new WP_REST_Response(
@@ -1044,7 +1044,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$password = $request->get_param( 'password' );
 
 		if ( ! is_email( $email ) ) {
-			return new WP_Error( 'onplay_invalid_email', __( 'Invalid email address.', 'woo-wallet' ), array( 'status' => 400 ) );
+			return new WP_Error( 'onplay_invalid_email', __( 'Invalid email address.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
 		// If user already exists, return existing.
@@ -1086,7 +1086,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		update_user_meta( $user_id, 'billing_phone', $phone );
 		update_user_meta( $user_id, 'billing_first_name', $first_name );
 		update_user_meta( $user_id, 'billing_last_name', $last_name );
-		update_user_meta( $user_id, '_current_woo_wallet_balance', 0 );
+		update_user_meta( $user_id, '_current_onplay_wallet_balance', 0 );
 		update_user_meta( $user_id, '_onplay_pos_customer', true );
 
 		return new WP_REST_Response(
@@ -1105,7 +1105,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response
 	 */
 	public function get_status( $request ) {
-		$pos_active = woo_wallet()->pos_connector->is_active();
+		$pos_active = onplay_wallet()->pos_connector->is_active();
 
 		$response = array(
 			'success'            => true,
@@ -1121,7 +1121,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 
 		// Test POS connection if configured.
 		if ( $pos_active ) {
-			$test = woo_wallet()->pos_connector->test_connection();
+			$test = onplay_wallet()->pos_connector->test_connection();
 			$response['pos_connection'] = is_wp_error( $test ) ? 'error' : 'ok';
 			if ( is_wp_error( $test ) ) {
 				$response['pos_error'] = $test->get_error_message();

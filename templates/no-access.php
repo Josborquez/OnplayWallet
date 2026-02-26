@@ -2,7 +2,7 @@
 /**
  * The Template for displaying locked wallet content.
  *
- * This template can be overridden by copying it to yourtheme/woo-wallet/no-access.php.
+ * This template can be overridden by copying it to yourtheme/onplay-wallet/no-access.php.
  *
  * HOWEVER, on occasion we will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
@@ -21,5 +21,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 <p>
-	<?php esc_html_e( 'Your wallet account is locked please contact site owner for more details.', 'woo-wallet' ); ?>
+	<?php esc_html_e( 'Your wallet account is locked please contact site owner for more details.', 'onplay-wallet' ); ?>
 </p>

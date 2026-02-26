@@ -2,7 +2,7 @@
 /**
  * Customer wallet transaction email
  *
- * This template can be overridden by copying it to yourtheme/woo-wallet/emails/low-wallet-balance.php.
+ * This template can be overridden by copying it to yourtheme/onplay-wallet/emails/low-wallet-balance.php.
  *
  * HOWEVER, on occasion we will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
@@ -30,19 +30,19 @@ do_action( 'woocommerce_email_header', $email_heading, $email );
 <p>
 	<?php
 	/* translators: 1: wallet amount */
-	echo sprintf( __( 'Your %s wallet balance is low.', 'woo-wallet' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+	echo sprintf( __( 'Your %s wallet balance is low.', 'onplay-wallet' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
 	?>
 </p>
 <p>
 	<b>
 		<?php
 		/* translators: 1: wallet amount */
-		echo sprintf( __( 'Current Balance: %s', 'woo-wallet' ), woo_wallet()->wallet->get_wallet_balance( $user->ID ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+		echo sprintf( __( 'Current Balance: %s', 'onplay-wallet' ), onplay_wallet()->wallet->get_wallet_balance( $user->ID ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
 		?>
 	</b>
 </p>
 <p>
-	<?php echo sprintf( __( 'Please recharge you wallet now to avoid any disruption.', 'woo-wallet' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+	<?php echo sprintf( __( 'Please recharge you wallet now to avoid any disruption.', 'onplay-wallet' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 </p>
 <?php
 /**

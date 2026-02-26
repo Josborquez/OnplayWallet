@@ -1,0 +1,1431 @@
+# Spanish (Spain) translation for OnplayWallet
+# Copyright (C) 2026 OnplayWallet
+# This file is distributed under the same license as the OnplayWallet plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: OnplayWallet 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: OnplayWallet Team\n"
+"Language-Team: Spanish (Spain)\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-02-26T00:00:00+00:00\n"
+"PO-Revision-Date: 2026-02-26T00:00:00+00:00\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: OnplayWallet\n"
+"X-Domain: onplay-wallet\n"
+
+msgid "OnplayWallet"
+msgstr "OnplayWallet"
+
+msgid "OnplayWallet"
+msgstr "OnplayWallet"
+
+msgid "https://standalonetech.com/"
+msgstr ""
+
+msgid "The leading wallet plugin for WooCommerce with partial payment, refunds, cashbacks and what not!"
+msgstr "El plugin de billetera líder para WooCommerce con pagos parciales, reembolsos, cashback y mucho más."
+
+msgid "StandaloneTech"
+msgstr "OnplayWallet"
+
+msgid "Your settings have been saved."
+msgstr "Tu configuración ha sido guardada."
+
+msgid "Cheatin&#8217; huh?"
+msgstr "¿Intentando hacer trampa?"
+
+msgid "Return to actions"
+msgstr "Volver a acciones"
+
+msgid "Daily visits"
+msgstr "Visitas diarias"
+
+msgid "Set credit for daily visits"
+msgstr "Establecer crédito por visitas diarias"
+
+msgid "Enable/Disable"
+msgstr "Activar/Desactivar"
+
+msgid "Enable credit for daily visits."
+msgstr "Activar crédito por visitas diarias."
+
+msgid "Amount"
+msgstr "Monto"
+
+msgid "Enter amount which will be credited to the user wallet for daily visits."
+msgstr "Ingresa el monto que se acreditará en la billetera del usuario por visitas diarias."
+
+msgid "Exclude user role"
+msgstr "Excluir rol de usuario"
+
+msgid "This option lets you limit which user role you want to exclude."
+msgstr "Esta opción te permite limitar qué rol de usuario deseas excluir."
+
+msgid "Description"
+msgstr "Descripción"
+
+msgid "Wallet transaction description that will display as transaction note."
+msgstr "Descripción de la transacción de billetera que se mostrará como nota de transacción."
+
+msgid "Balance credited visiting site."
+msgstr "Saldo acreditado por visitar el sitio."
+
+msgid "New user registration"
+msgstr "Registro de nuevo usuario"
+
+msgid "Set credit upon new user registration"
+msgstr "Establecer crédito por registro de nuevo usuario"
+
+msgid "Enable auto credit upon user registration"
+msgstr "Activar crédito automático por registro de usuario"
+
+msgid "Enter amount which will be credited to the user wallet after registration."
+msgstr "Ingresa el monto que se acreditará en la billetera del usuario después del registro."
+
+msgid "Balance credited for becoming a member."
+msgstr "Saldo acreditado por convertirse en miembro."
+
+msgid "WooCommerce product review"
+msgstr "Reseña de producto WooCommerce"
+
+msgid "Set credit for WooCommerce product review"
+msgstr "Establecer crédito por reseña de producto WooCommerce"
+
+msgid "Enable credit for WooCommerce product review"
+msgstr "Activar crédito por reseña de producto WooCommerce"
+
+msgid "Enter amount which will be credited to the user wallet for reviewing a WooCommerce product."
+msgstr "Ingresa el monto que se acreditará en la billetera del usuario por reseñar un producto WooCommerce."
+
+msgid "Balance credited for reviewing a WooCommerce product."
+msgstr "Saldo acreditado por reseñar un producto WooCommerce."
+
+msgid "Referrals"
+msgstr "Referidos"
+
+msgid "Set credit ruls for referrals"
+msgstr "Establecer reglas de crédito para referidos"
+
+msgid "Enable credit for referrals."
+msgstr "Activar crédito por referidos."
+
+msgid "Referring Visitors"
+msgstr "Visitantes referidos"
+
+msgid "Limit"
+msgstr "Límite"
+
+msgid "No Limit"
+msgstr "Sin límite"
+
+msgid "Per Day"
+msgstr "Por día"
+
+msgid "Per Week"
+msgstr "Por semana"
+
+msgid "Per Month"
+msgstr "Por mes"
+
+msgid "Balance credited for referring a visitor"
+msgstr "Saldo acreditado por referir a un visitante"
+
+msgid "Referring Signups"
+msgstr "Registros referidos"
+
+msgid "Enter amount which will be credited to the user wallet for referring a user."
+msgstr "Ingresa el monto que se acreditará en la billetera del usuario por referir a un usuario."
+
+msgid "Minimum Order Amount"
+msgstr "Monto mínimo de pedido"
+
+msgid "Enter the minimum order amount for referral credit."
+msgstr "Ingresa el monto mínimo de pedido para el crédito por referido."
+
+msgid "Balance credited for referring a new member"
+msgstr "Saldo acreditado por referir a un nuevo miembro"
+
+msgid "Referral Links"
+msgstr "Enlaces de referido"
+
+msgid "Referral Format"
+msgstr "Formato de referido"
+
+msgid "Numeric referral ID"
+msgstr "ID de referido numérico"
+
+msgid "Usernames as referral ID"
+msgstr "Nombres de usuario como ID de referido"
+
+msgid "Sell Content"
+msgstr "Vender contenido"
+
+msgid "Sell your content using wallet balance. Use shortcode <code>[tw-sell-content]</code> to sell part of a content."
+msgstr "Vende tu contenido usando el saldo de la billetera. Usa el shortcode <code>[tw-sell-content]</code> para vender parte de un contenido."
+
+msgid "Enable sell Content action"
+msgstr "Activar acción de vender contenido"
+
+msgid "Which post type(s) content do you want to sell?"
+msgstr "¿Qué tipo(s) de publicación deseas vender?"
+
+msgid "This option lets you to choose post types which you want to sell."
+msgstr "Esta opción te permite elegir los tipos de publicación que deseas vender."
+
+msgid "Default Amount"
+msgstr "Monto predeterminado"
+
+msgid "Enter amount which will be from user wallet when purchase paid content."
+msgstr "Ingresa el monto que se cobrará de la billetera del usuario al comprar contenido de pago."
+
+msgid "Profit Share"
+msgstr "Reparto de ganancias"
+
+msgid "Option to pay a percentage of each sale with the content author."
+msgstr "Opción para pagar un porcentaje de cada venta al autor del contenido."
+
+msgid "Expiration"
+msgstr "Expiración"
+
+msgid "Option to automatically expire purchases after certain number of Hour(s). Use zero to disable.."
+msgstr "Opción para expirar automáticamente las compras después de un cierto número de hora(s). Usa cero para desactivar."
+
+msgid "Purchase Description"
+msgstr "Descripción de compra"
+
+msgid "Purchase transaction description that will display as transaction note. Available Tags<code>#title#</code> <code>#link_with_title#</code>"
+msgstr "Descripción de la transacción de compra que se mostrará como nota. Etiquetas disponibles<code>#title#</code> <code>#link_with_title#</code>"
+
+msgid "Purchase of #title#"
+msgstr "Compra de #title#"
+
+msgid "Selling Description"
+msgstr "Descripción de venta"
+
+msgid "Selling transaction description that will display as transaction note. Available Tags<code>#title#</code> <code>#link_with_title#</code>"
+msgstr "Descripción de la transacción de venta que se mostrará como nota. Etiquetas disponibles<code>#title#</code> <code>#link_with_title#</code>"
+
+msgid "Sale of #title#"
+msgstr "Venta de #title#"
+
+msgid "Button Label"
+msgstr "Etiqueta del botón"
+
+msgid "Enter pay button lable. Available Tags<code>#price#</code>"
+msgstr "Ingresa la etiqueta del botón de pago. Etiquetas disponibles<code>#price#</code>"
+
+msgid "Pay #price#"
+msgstr "Pagar #price#"
+
+msgid "Button CSS Classes"
+msgstr "Clases CSS del botón"
+
+msgid "Enter custom button CSS Classes"
+msgstr "Ingresa las clases CSS personalizadas del botón"
+
+msgid "button button-primary"
+msgstr "button button-primary"
+
+msgid "Purchase Template"
+msgstr "Plantilla de compra"
+
+msgid "The content will be replaced with this template when viewed by a user that has not paid for the content but can afford to pay."
+msgstr "El contenido será reemplazado por esta plantilla cuando sea visto por un usuario que no ha pagado pero puede permitirse pagar."
+
+msgid "Available Tags: <code>#buy_button#</code> <code>#price#</code> <code>#balance#</code>"
+msgstr "Etiquetas disponibles: <code>#buy_button#</code> <code>#price#</code> <code>#balance#</code>"
+
+msgid "Insufficient Funds Template"
+msgstr "Plantilla de fondos insuficientes"
+
+msgid "The content will be replaced with this template when viewed by a user that has not paid for the content and can not afford to pay."
+msgstr "El contenido será reemplazado por esta plantilla cuando sea visto por un usuario que no ha pagado y no puede permitirse pagar."
+
+msgid "Available Tags: <code>#price#</code> <code>#balance#</code>"
+msgstr "Etiquetas disponibles: <code>#price#</code> <code>#balance#</code>"
+
+msgid "Visitors Template"
+msgstr "Plantilla de visitantes"
+
+msgid "The content will be replaced with this template when viewed by someone who is not logged in on your website."
+msgstr "El contenido será reemplazado por esta plantilla cuando sea visto por alguien que no ha iniciado sesión en tu sitio web."
+
+msgid "Available Tags: <code>#price#</code>"
+msgstr "Etiquetas disponibles: <code>#price#</code>"
+
+msgid "Sell this content"
+msgstr "Vender este contenido"
+
+msgid "Price"
+msgstr "Precio"
+
+msgid "cb"
+msgstr "cb"
+
+msgid "Username"
+msgstr "Usuario"
+
+msgid "Email"
+msgstr "Correo electrónico"
+
+msgid "Total Deposits"
+msgstr "Total de depósitos"
+
+msgid "Total Spent"
+msgstr "Total gastado"
+
+msgid "Cashback Earned"
+msgstr "Cashback ganado"
+
+msgid "Remaining balance"
+msgstr "Saldo restante"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "No users found."
+msgstr "No se encontraron usuarios."
+
+msgid "Edit Balance"
+msgstr "Editar saldo"
+
+msgid "Locked"
+msgstr "Bloqueado"
+
+msgid "Active"
+msgstr "Activo"
+
+msgid "Balance after deleting transaction logs"
+msgstr "Saldo después de eliminar registros de transacciones"
+
+msgid "Credit"
+msgstr "Crédito"
+
+msgid "Debit"
+msgstr "Débito"
+
+msgid "Delete Log"
+msgstr "Eliminar registro"
+
+msgid "You are about to delete transaction records from database for selected users."
+msgstr "Estás a punto de eliminar registros de transacciones de la base de datos para los usuarios seleccionados."
+
+msgid "Loading..."
+msgstr "Cargando..."
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "Details"
+msgstr "Detalles"
+
+msgid "Created By"
+msgstr "Creado por"
+
+msgid "No transactions found."
+msgstr "No se encontraron transacciones."
+
+msgid "Wallet topup"
+msgstr "Recarga de billetera"
+
+msgid "Wallet transfer"
+msgstr "Transferencia de billetera"
+
+msgid "Transactions"
+msgstr "Transacciones"
+
+msgid "My Wallet"
+msgstr "Mi Billetera"
+
+msgid "Manage your wallet and transactions seamlessly."
+msgstr "Administra tu billetera y transacciones fácilmente."
+
+msgid "Total Balance"
+msgstr "Saldo total"
+
+msgid "Balance History"
+msgstr "Historial de saldo"
+
+msgid "No transactions found"
+msgstr "No se encontraron transacciones"
+
+msgid "Wallet Topup"
+msgstr "Recarga de billetera"
+
+msgid "Enter amount"
+msgstr "Ingresa el monto"
+
+msgid "Add Funds"
+msgstr "Agregar fondos"
+
+msgid "Wallet Transfer"
+msgstr "Transferencia de billetera"
+
+msgid "Select Recipient"
+msgstr "Seleccionar destinatario"
+
+msgid "(Email)"
+msgstr "(Correo electrónico)"
+
+msgid "What's this for?"
+msgstr "¿Para qué es esto?"
+
+msgid "Optional note..."
+msgstr "Nota opcional..."
+
+msgid "Proceed to Transfer"
+msgstr "Proceder con la transferencia"
+
+msgid "Your Referral URL"
+msgstr "Tu URL de referido"
+
+msgid "Copy to clipboard"
+msgstr "Copiar al portapapeles"
+
+msgid "Copy URL"
+msgstr "Copiar URL"
+
+msgid "Referral Statistics"
+msgstr "Estadísticas de referidos"
+
+msgid "Visitors"
+msgstr "Visitantes"
+
+msgid "Signups"
+msgstr "Registros"
+
+msgid "Earnings"
+msgstr "Ganancias"
+
+msgid "Copied!"
+msgstr "¡Copiado!"
+
+msgid "Your wallet account is locked please contact site owner for more details."
+msgstr "Tu cuenta de billetera está bloqueada. Por favor contacta al administrador del sitio para más detalles."
+
+msgid "Via wallet"
+msgstr "Vía billetera"
+
+msgid " Cashback"
+msgstr " Cashback"
+
+msgid "Cashback"
+msgstr "Cashback"
+
+msgid "Cashback: %s"
+msgstr "Cashback: %s"
+
+msgid "Wallet Balance"
+msgstr "Saldo de billetera"
+
+msgid "Wallet Management"
+msgstr "Gestión de billetera"
+
+msgid "Current wallet balance"
+msgstr "Saldo actual de la billetera"
+
+msgid "Lock / Unlock"
+msgstr "Bloquear / Desbloquear"
+
+msgid "Unlock"
+msgstr "Desbloquear"
+
+msgid "Lock"
+msgstr "Bloquear"
+
+msgid "Users wallet details"
+msgstr "Detalles de billetera de usuarios"
+
+msgid "Search Users"
+msgstr "Buscar usuarios"
+
+msgid "Adjust Balance: %1$s (%2$s)"
+msgstr "Ajustar saldo: %1$s (%2$s)"
+
+msgid "Current wallet balance: "
+msgstr "Saldo actual de la billetera: "
+
+msgid "Enter Amount"
+msgstr "Ingresa el monto"
+
+msgid "Select payment type"
+msgstr "Selecciona el tipo de pago"
+
+msgid "Enter Description"
+msgstr "Ingresa la descripción"
+
+msgid "Transaction details"
+msgstr "Detalles de transacción"
+
+msgid "Invalid user"
+msgstr "Usuario inválido"
+
+msgid "Please enter amount"
+msgstr "Por favor ingresa el monto"
+
+msgid "%s has insufficient balance for debit."
+msgstr "%s tiene saldo insuficiente para el débito."
+
+msgid "%1$s has been debited from %2$s wallet account. <a href=\"%3$s\">View all transactions&rarr;</a>"
+msgstr "Se ha debitado %1$s de la cuenta de billetera de %2$s. <a href=\"%3$s\">Ver todas las transacciones&rarr;</a>"
+
+msgid "There may be some issue with database connection. Please deactivate OnplayWallet plugin and activate again."
+msgstr "Puede haber un problema con la conexión a la base de datos. Por favor desactiva el plugin OnplayWallet y actívalo nuevamente."
+
+msgid "%1$s has been credited to %2$s wallet account. <a href=\"%3$s\">View all transactions&rarr;</a>"
+msgstr "Se ha acreditado %1$s en la cuenta de billetera de %2$s. <a href=\"%3$s\">Ver todas las transacciones&rarr;</a>"
+
+msgid "Wallet actions"
+msgstr "Acciones de billetera"
+
+msgid "Integrated wallet actions are listed below. If active those actions will be triggered with respective WordPress hook."
+msgstr "Las acciones integradas de billetera se listan a continuación. Si están activas, se ejecutarán con su respectivo hook de WordPress."
+
+msgid "Action"
+msgstr "Acción"
+
+msgid "Enabled"
+msgstr "Activado"
+
+msgid "Disabled"
+msgstr "Desactivado"
+
+msgid "Yes"
+msgstr "Sí"
+
+msgid "Manage"
+msgstr "Administrar"
+
+msgid "Setup"
+msgstr "Configurar"
+
+msgid "Save changes"
+msgstr "Guardar cambios"
+
+msgid "Display wallet icon and amount instead of menu navigation label?"
+msgstr "¿Mostrar icono de billetera y monto en lugar de la etiqueta de navegación del menú?"
+
+msgid "%s wallet top-up this month"
+msgstr "%s recarga de billetera este mes"
+
+msgid "Onplay Wallet"
+msgstr "OnplayWallet"
+
+msgid "Actions"
+msgstr "Acciones"
+
+msgid "OnplayPOS"
+msgstr "OnplayPOS"
+
+msgid "Cashback type"
+msgstr "Tipo de cashback"
+
+msgid "Select cashback type percentage or fixed"
+msgstr "Selecciona el tipo de cashback: porcentaje o fijo"
+
+msgid "Percentage"
+msgstr "Porcentaje"
+
+msgid "Fixed"
+msgstr "Fijo"
+
+msgid "Cashback Amount"
+msgstr "Monto de cashback"
+
+msgid "Enter cashback amount"
+msgstr "Ingresa el monto de cashback"
+
+msgid "Apply as cashback"
+msgstr "Aplicar como cashback"
+
+msgid "Check this box if the coupon should apply as cashback."
+msgstr "Marca esta casilla si el cupón debe aplicarse como cashback."
+
+msgid "If you like %1$s please leave us a %2$s rating. A huge thanks in advance!"
+msgstr "Si te gusta %1$s, por favor déjanos una calificación de %2$s. ¡Muchas gracias de antemano!"
+
+msgid "Thank you for using OnplayWallet."
+msgstr "Gracias por usar OnplayWallet."
+
+msgid "Thank you for using OnplayWallet."
+msgstr "Gracias por usar OnplayWallet."
+
+msgid "Gracias por usar OnplayWallet."
+msgstr "Gracias por usar OnplayWallet."
+
+msgid "Thanks :)"
+msgstr "¡Gracias :)"
+
+msgid "Wallet endpoints"
+msgstr "Endpoints de billetera"
+
+msgid "Endpoint for the \"My account &rarr; My Wallet\" page."
+msgstr "Endpoint para la página \"Mi cuenta &rarr; Mi Billetera\"."
+
+msgid "Endpoints are appended to your page URLs to handle specific actions on the accounts pages. They should be unique and can be left blank to disable the endpoint."
+msgstr "Los endpoints se añaden a las URLs de tus páginas para manejar acciones específicas en las páginas de cuenta. Deben ser únicos y pueden dejarse en blanco para desactivar el endpoint."
+
+msgid "View details"
+msgstr "Ver detalles"
+
+msgid "Recalculate order cashback"
+msgstr "Recalcular cashback del pedido"
+
+msgid "Refund"
+msgstr "Reembolso"
+
+msgid "Refunded"
+msgstr "Reembolsado"
+
+msgid "to customer wallet"
+msgstr "a la billetera del cliente"
+
+msgid "Refund not credited to customer"
+msgstr "Reembolso no acreditado al cliente"
+
+msgid "General Options"
+msgstr "Opciones generales"
+
+msgid "Credit Options"
+msgstr "Opciones de crédito"
+
+msgid "Settings"
+msgstr "Configuración"
+
+msgid "Rechargeable Product Title"
+msgstr "Título del producto recargable"
+
+msgid "Enter wallet rechargeable product title | <a href=\"%s\" target=\"_blank\">Edit product</a>"
+msgstr "Ingresa el título del producto recargable de billetera | <a href=\"%s\" target=\"_blank\">Editar producto</a>"
+
+msgid "Rechargeable Product Image"
+msgstr "Imagen del producto recargable"
+
+msgid "Choose wallet rechargeable product image | <a href=\"%s\" target=\"_blank\">Edit product</a>"
+msgstr "Elige la imagen del producto recargable de billetera | <a href=\"%s\" target=\"_blank\">Editar producto</a>"
+
+msgid "Set product image"
+msgstr "Establecer imagen del producto"
+
+msgid "Product image"
+msgstr "Imagen del producto"
+
+msgid "Rechargeable Product Tax status"
+msgstr "Estado fiscal del producto recargable"
+
+msgid "Define whether or not the rechargeable Product is taxable."
+msgstr "Define si el producto recargable está sujeto a impuestos o no."
+
+msgid "Taxable"
+msgstr "Gravable"
+
+msgid "None"
+msgstr "Ninguno"
+
+msgid "Rechargeable Product Tax class"
+msgstr "Clase fiscal del producto recargable"
+
+msgid "Choose a tax class for rechargeable product. Tax classes are used to apply different tax rates specific to certain types of product."
+msgstr "Elige una clase fiscal para el producto recargable. Las clases fiscales se usan para aplicar diferentes tasas de impuestos a ciertos tipos de productos."
+
+msgid "Minimum Topup Amount"
+msgstr "Monto mínimo de recarga"
+
+msgid "The minimum amount needed for wallet top up"
+msgstr "El monto mínimo necesario para la recarga de billetera"
+
+msgid "Maximum Topup Amount"
+msgstr "Monto máximo de recarga"
+
+msgid "The maximum amount needed for wallet top up"
+msgstr "El monto máximo permitido para la recarga de billetera"
+
+msgid "Allowed Payment Gateways"
+msgstr "Pasarelas de pago permitidas"
+
+msgid "Select the payment gateways you want to allow for wallet top up."
+msgstr "Selecciona las pasarelas de pago que deseas permitir para la recarga de billetera."
+
+msgid "Allow this gateway for recharge wallet"
+msgstr "Permitir esta pasarela para recargar billetera"
+
+msgid "Partial payment"
+msgstr "Pago parcial"
+
+msgid "If checked user will be able to use part of wallet balance at checkout page."
+msgstr "Si se activa, el usuario podrá usar parte del saldo de su billetera en la página de pago."
+
+msgid "Auto deduct wallet balance for partial payment"
+msgstr "Deducir automáticamente el saldo de la billetera para pago parcial"
+
+msgid "If a purchase requires more balance than you have in your wallet, then if checked the wallet balance will be deduct first and the rest of the amount will need to be paid."
+msgstr "Si una compra requiere más saldo del que tienes en tu billetera, al activar esta opción el saldo de la billetera se deducirá primero y el resto del monto deberá pagarse."
+
+msgid "If checked %1$s will be debited from your wallet and %2$s will be paid through other payment method"
+msgstr "Si se activa, %1$s se debitará de tu billetera y %2$s se pagará a través de otro método de pago"
+
+msgid "If checked user will be able to transfer fund to another user."
+msgstr "Si se activa, el usuario podrá transferir fondos a otro usuario."
+
+msgid "Minimum transfer amount"
+msgstr "Monto mínimo de transferencia"
+
+msgid "Enter minimum transfer amount"
+msgstr "Ingresa el monto mínimo de transferencia"
+
+msgid "Transfer charge type"
+msgstr "Tipo de cargo por transferencia"
+
+msgid "Select transfer charge type percentage or fixed"
+msgstr "Selecciona el tipo de cargo por transferencia: porcentaje o fijo"
+
+msgid "Percent Charge(%)"
+msgstr "Cargo porcentual (%)"
+
+msgid "Fixed Charge"
+msgstr "Cargo fijo"
+
+msgid "Transfer charge Amount"
+msgstr "Monto del cargo por transferencia"
+
+msgid "Enter transfer charge amount"
+msgstr "Ingresa el monto del cargo por transferencia"
+
+msgid "Cashback Reward Program"
+msgstr "Programa de recompensas Cashback"
+
+msgid "Run cashback reward program on your store"
+msgstr "Ejecutar programa de recompensas cashback en tu tienda"
+
+msgid "Cashback Rule"
+msgstr "Regla de cashback"
+
+msgid "Select Cashback Rule cart or product wise"
+msgstr "Selecciona la regla de cashback por carrito o por producto"
+
+msgid "Cart wise"
+msgstr "Por carrito"
+
+msgid "Product wise"
+msgstr "Por producto"
+
+msgid "Product category wise"
+msgstr "Por categoría de producto"
+
+msgid "Cashback Option"
+msgstr "Opción de cashback"
+
+msgid "Cashback Options"
+msgstr "Opciones de cashback"
+
+msgid "Set product cashback options"
+msgstr "Establecer opciones de cashback del producto"
+
+msgid "Allow vendor to update product cashback"
+msgstr "Permitir al vendedor actualizar el cashback del producto"
+
+msgid "Checking this will enable sellers to change the product cashback option. If unchecked, only admin can change product cashback."
+msgstr "Activar esto permitirá a los vendedores cambiar la opción de cashback del producto. Si se desactiva, solo el administrador podrá cambiar el cashback del producto."
+
+msgid "This option lets you specify which user role you want to exclude from the cashback program."
+msgstr "Esta opción te permite especificar qué rol de usuario deseas excluir del programa de cashback."
+
+msgid "Process cashback"
+msgstr "Procesar cashback"
+
+msgid "Select order status to process cashback"
+msgstr "Selecciona el estado del pedido para procesar cashback"
+
+msgid "Allow Minimum cashback"
+msgstr "Permitir cashback mínimo"
+
+msgid "If checked minimum cashback amount will be applied on product category cashback calculation."
+msgstr "Si se activa, el monto mínimo de cashback se aplicará en el cálculo de cashback por categoría de producto."
+
+msgid "Maximum Cashback Amount"
+msgstr "Monto máximo de cashback"
+
+msgid "Enter maximum cashback amount"
+msgstr "Ingresa el monto máximo de cashback"
+
+msgid "Minimum Cart Amount"
+msgstr "Monto mínimo del carrito"
+
+msgid "Enter applicable minimum cart amount for cashback"
+msgstr "Ingresa el monto mínimo del carrito aplicable para cashback"
+
+msgid "Payment gateway charge"
+msgstr "Cargo de pasarela de pago"
+
+msgid "Charge customer when they add balance to their wallet?"
+msgstr "¿Cobrar al cliente cuando agrega saldo a su billetera?"
+
+msgid "Charge type"
+msgstr "Tipo de cargo"
+
+msgid "Select gateway charge type percentage or fixed"
+msgstr "Selecciona el tipo de cargo de pasarela: porcentaje o fijo"
+
+msgid "Enter gateway charge amount for "
+msgstr "Ingresa el monto del cargo de pasarela para "
+
+msgid "Charge Tax"
+msgstr "Cargo de impuesto"
+
+msgid "Tax for withdrawal charge, calculate in percent."
+msgstr "Impuesto para cargo por retiro, calculado en porcentaje."
+
+msgid "Mini wallet display location"
+msgstr "Ubicación de visualización de mini billetera"
+
+msgid "Select the location where you want to display mini wallet."
+msgstr "Selecciona la ubicación donde deseas mostrar la mini billetera."
+
+msgid "Wallet payment"
+msgstr "Pago con billetera"
+
+msgid "Wallet Payment"
+msgstr "Pago con billetera"
+
+msgid "Enable wallet payments"
+msgstr "Activar pagos con billetera"
+
+msgid "Have your customers pay with wallet."
+msgstr "Permite que tus clientes paguen con billetera."
+
+msgid "Pay with wallet."
+msgstr "Pagar con billetera."
+
+msgid "Pay by wallet"
+msgstr "Pagar con billetera"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "This controls the title which the user sees during checkout."
+msgstr "Esto controla el título que el usuario ve durante el pago."
+
+msgid "Instructions"
+msgstr "Instrucciones"
+
+msgid "Instructions that will be added to the thank you page."
+msgstr "Instrucciones que se agregarán a la página de agradecimiento."
+
+msgid "Payment error: "
+msgstr "Error de pago: "
+
+msgid "Something went wrong with processing payment please try again."
+msgstr "Algo salió mal al procesar el pago. Por favor intenta de nuevo."
+
+msgid "Thank you for using wallet"
+msgstr "Gracias por usar la billetera"
+
+msgid "Thank you for using your wallet."
+msgstr "Gracias por usar tu billetera."
+
+msgid "Upon placing this order a cashback of %s will be credited to your wallet."
+msgstr "Al realizar este pedido, se acreditará un cashback de %s en tu billetera."
+
+msgid "Amount transferred successfully!"
+msgstr "¡Monto transferido exitosamente!"
+
+msgid "Minimum transfer amount is %s"
+msgstr "El monto mínimo de transferencia es %s"
+
+msgid "Amount cannot exceed your wallet balance"
+msgstr "El monto no puede exceder tu saldo de billetera"
+
+msgid "The minimum amount needed for wallet top up is %s"
+msgstr "El monto mínimo necesario para la recarga de billetera es %s"
+
+msgid "Wallet top up amount should be less than %s"
+msgstr "El monto de recarga de billetera debe ser menor que %s"
+
+msgid "Wallet top up amount should be between %1$s and %2$s"
+msgstr "El monto de recarga de billetera debe estar entre %1$s y %2$s"
+
+msgid "Please enter a valid amount greater than 0"
+msgstr "Por favor ingresa un monto válido mayor que 0"
+
+msgid "Entered amount is greater than current wallet amount."
+msgstr "El monto ingresado es mayor que el saldo actual de la billetera."
+
+msgid "Invalid User."
+msgstr "Usuario inválido."
+
+msgid "Invalid nonce"
+msgstr "Nonce inválido"
+
+msgid "Please enter a valid email address"
+msgstr "Por favor ingresa una dirección de correo electrónico válida"
+
+msgid "Invalid payment method"
+msgstr "Método de pago inválido"
+
+msgid "Coupon code applied successfully as cashback."
+msgstr "Código de cupón aplicado exitosamente como cashback."
+
+msgid "Wallet funds transfer to %s"
+msgstr "Transferencia de fondos de billetera a %s"
+
+msgid "Wallet funds received from %s"
+msgstr "Fondos de billetera recibidos de %s"
+
+msgid "Wallet credit through purchase #"
+msgstr "Crédito de billetera por compra #"
+
+msgid "Wallet credit through cashback #"
+msgstr "Crédito de billetera por cashback #"
+
+msgid "Wallet credit through cashback by applying coupon"
+msgstr "Crédito de billetera por cashback al aplicar cupón"
+
+msgid "For order payment #"
+msgstr "Para pago de pedido #"
+
+msgid "Wallet refund #"
+msgstr "Reembolso de billetera #"
+
+msgid "%s paid through wallet"
+msgstr "%s pagado a través de la billetera"
+
+msgid "%s refunded to customer wallet"
+msgstr "%s reembolsado a la billetera del cliente"
+
+msgid "Wallet amount %s has been credited to customer upon cancellation"
+msgstr "El monto de billetera %s ha sido acreditado al cliente por cancelación"
+
+msgid "Cashback for #%s has been debited upon cancellation"
+msgstr "El cashback por #%s ha sido debitado por cancelación"
+
+msgid "Your order with ID #%s has been cancelled and hence your wallet amount has been refunded!"
+msgstr "¡Tu pedido con ID #%s ha sido cancelado y por lo tanto el monto de tu billetera ha sido reembolsado!"
+
+msgid "has been credited to your wallet."
+msgstr "ha sido acreditado en tu billetera."
+
+msgid "has been debited from your wallet."
+msgstr "ha sido debitado de tu billetera."
+
+msgid "Current Balance: %s"
+msgstr "Saldo actual: %s"
+
+msgid "| Current Balance: %s"
+msgstr "| Saldo actual: %s"
+
+msgid " | Current Balance: <strong>%s</strong>"
+msgstr " | Saldo actual: <strong>%s</strong>"
+
+msgid "Wallet"
+msgstr "Billetera"
+
+msgid "%1$s will be debited from your wallet and %2$s will be paid through other payment method"
+msgstr "%1$s se debitará de tu billetera y %2$s se pagará a través de otro método de pago"
+
+msgid "You have %s in your wallet to spend!"
+msgstr "¡Tienes %s en tu billetera para gastar!"
+
+msgid "Wallet balance only?"
+msgstr "¿Solo saldo de billetera?"
+
+msgid "Please <a href=\"%1$s\">log in</a> to avail %2$s cashback from this order."
+msgstr "Por favor <a href=\"%1$s\">inicia sesión</a> para obtener %2$s de cashback de este pedido."
+
+msgid "Your wallet balance is low. Please add %s to proceed with this transaction."
+msgstr "Tu saldo de billetera es bajo. Por favor agrega %s para proceder con esta transacción."
+
+msgid "Title:"
+msgstr "Título:"
+
+msgid "Current balance: "
+msgstr "Saldo actual: "
+
+msgid "Logout"
+msgstr "Cerrar sesión"
+
+msgid "Account details"
+msgstr "Detalles de la cuenta"
+
+msgid "New wallet transaction"
+msgstr "Nueva transacción de billetera"
+
+msgid "New wallet transaction emails are sent to user when a wallet transaction received."
+msgstr "Los correos de nueva transacción de billetera se envían al usuario cuando se recibe una transacción."
+
+msgid "Email heading"
+msgstr "Encabezado del correo"
+
+msgid "Email type"
+msgstr "Tipo de correo"
+
+msgid "Enable this email notification"
+msgstr "Activar esta notificación por correo"
+
+msgid "Subject"
+msgstr "Asunto"
+
+msgid "Available placeholders: %s"
+msgstr "Marcadores disponibles: %s"
+
+msgid "Choose which format of email to send."
+msgstr "Elige el formato de correo a enviar."
+
+msgid "Your {site_title} wallet transaction from {transaction_date}"
+msgstr "Tu transacción de billetera en {site_title} del {transaction_date}"
+
+msgid "New transaction has been initiated"
+msgstr "Se ha iniciado una nueva transacción"
+
+msgid "Low Wallet Balance"
+msgstr "Saldo bajo de billetera"
+
+msgid "Your %s wallet balance is low."
+msgstr "Tu saldo de billetera %s es bajo."
+
+msgid "Your {site_title} wallet balance is low."
+msgstr "Tu saldo de billetera en {site_title} es bajo."
+
+msgid "Threshold for low wallet balance"
+msgstr "Umbral para saldo bajo de billetera"
+
+msgid "A minimum balance on which customers will be notified to recharge again the wallet."
+msgstr "El saldo mínimo en el cual se notificará a los clientes para recargar la billetera."
+
+msgid "If the wallet balance reaches the lower limit set by admin for notification then the customer will get the notification for low wallet balance."
+msgstr "Si el saldo de la billetera alcanza el límite inferior establecido por el administrador, el cliente recibirá la notificación de saldo bajo."
+
+msgid "Please recharge you wallet now to avoid any disruption."
+msgstr "Por favor recarga tu billetera ahora para evitar interrupciones."
+
+msgid "Please recharge your wallet for continue using."
+msgstr "Por favor recarga tu billetera para seguir usándola."
+
+msgid "Current wallet balance is"
+msgstr "El saldo actual de la billetera es"
+
+msgid "W"
+msgstr "B"
+
+msgid "Wallet Top-up"
+msgstr "Recarga de billetera"
+
+msgid "Wallet Charge"
+msgstr "Cargo de billetera"
+
+msgid "Wallet Withdraw"
+msgstr "Retiro de billetera"
+
+msgid "Withdrawal request #"
+msgstr "Solicitud de retiro #"
+
+msgid "Auto approve wallet withdraw on request"
+msgstr "Aprobar automáticamente retiros de billetera bajo solicitud"
+
+msgid "User ID"
+msgstr "ID de usuario"
+
+msgid "User email address"
+msgstr "Correo electrónico del usuario"
+
+msgid "Unique identifier for the resource."
+msgstr "Identificador único del recurso."
+
+msgid "Wallet transaction amount."
+msgstr "Monto de la transacción de billetera."
+
+msgid "Wallet transaction type."
+msgstr "Tipo de transacción de billetera."
+
+msgid "Wallet transaction details."
+msgstr "Detalles de la transacción de billetera."
+
+msgid "Sorry, you are not allowed to create resources."
+msgstr "Lo sentimos, no tienes permiso para crear recursos."
+
+msgid "Sorry, you cannot list resources."
+msgstr "Lo sentimos, no puedes listar recursos."
+
+msgid "User not found"
+msgstr "Usuario no encontrado"
+
+msgid "Export"
+msgstr "Exportar"
+
+msgid "Export Transactions"
+msgstr "Exportar transacciones"
+
+msgid "Export all columns"
+msgstr "Exportar todas las columnas"
+
+msgid "Export all users"
+msgstr "Exportar todos los usuarios"
+
+msgid "Export transactions to a CSV file"
+msgstr "Exportar transacciones a un archivo CSV"
+
+msgid "This tool allows you to generate and download a CSV file containing a list of all transactions."
+msgstr "Esta herramienta te permite generar y descargar un archivo CSV con una lista de todas las transacciones."
+
+msgid "Which columns should be exported?"
+msgstr "¿Qué columnas deben exportarse?"
+
+msgid "Which users should be exported?"
+msgstr "¿Qué usuarios deben exportarse?"
+
+msgid "Generate CSV"
+msgstr "Generar CSV"
+
+msgid "From date"
+msgstr "Desde la fecha"
+
+msgid "To date"
+msgstr "Hasta la fecha"
+
+msgid "Choose File"
+msgstr "Elegir archivo"
+
+msgid "Update balance"
+msgstr "Actualizar saldo"
+
+msgid "Added by"
+msgstr "Agregado por"
+
+msgid "Currency"
+msgstr "Moneda"
+
+msgid "Please enter 3 or more characters"
+msgstr "Por favor ingresa 3 o más caracteres"
+
+msgid "No results found"
+msgstr "No se encontraron resultados"
+
+msgid "Searching…"
+msgstr "Buscando…"
+
+msgid "No transactions available"
+msgstr "No hay transacciones disponibles"
+
+msgid "Transactions per page"
+msgstr "Transacciones por página"
+
+msgid "Select"
+msgstr "Seleccionar"
+
+msgid "Custom"
+msgstr "Personalizado"
+
+msgid "Today"
+msgstr "Hoy"
+
+msgid "Yesterday"
+msgstr "Ayer"
+
+msgid "Last 7 days"
+msgstr "Últimos 7 días"
+
+msgid "Last 30 days"
+msgstr "Últimos 30 días"
+
+msgid "This month"
+msgstr "Este mes"
+
+msgid "Last month"
+msgstr "Mes pasado"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Mon"
+msgstr "Lun"
+
+msgid "Tue"
+msgstr "Mar"
+
+msgid "Wed"
+msgstr "Mié"
+
+msgid "Thu"
+msgstr "Jue"
+
+msgid "Fri"
+msgstr "Vie"
+
+msgid "Sat"
+msgstr "Sáb"
+
+msgid "Sun"
+msgstr "Dom"
+
+msgid "First"
+msgstr "Primero"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Next"
+msgstr "Siguiente"
+
+msgid "Last"
+msgstr "Último"
+
+msgid "Current page"
+msgstr "Página actual"
+
+msgid "Show %s entries"
+msgstr "Mostrar %s registros"
+
+msgid "Showing %1$1s to %2$2s of %3$3s entries"
+msgstr "Mostrando %1$1s a %2$2s de %3$3s registros"
+
+msgid "Showing 0 to 0 of 0 entries"
+msgstr "Mostrando 0 a 0 de 0 registros"
+
+msgid "(filtered from %1s total entries)"
+msgstr "(filtrado de %1s registros totales)"
+
+msgid "No matching records found"
+msgstr "No se encontraron registros coincidentes"
+
+msgid "0.00"
+msgstr "0.00"
+
+msgid "yyyy-mm-dd"
+msgstr "aaaa-mm-dd"
+
+msgid "Add"
+msgstr "Agregar"
+
+msgid "Close modal panel"
+msgstr "Cerrar panel modal"
+
+msgid "Amount (%s)"
+msgstr "Monto (%s)"
+
+msgid "Enter description"
+msgstr "Ingresa la descripción"
+
+msgid "%1$s (%2$s)"
+msgstr "%1$s (%2$s)"
+
+msgid "Completed"
+msgstr "Completado"
+
+msgid "Processing"
+msgstr "Procesando"
+
+msgid "On hold"
+msgstr "En espera"
+
+msgid "Pending payment"
+msgstr "Pago pendiente"
+
+msgid "View Wallet settings"
+msgstr "Ver configuración de billetera"
+
+msgid "You have no permission to do that"
+msgstr "No tienes permiso para hacer eso"
+
+msgid "If enabled user will be able to add funds into wallet."
+msgstr "Si se activa, el usuario podrá agregar fondos a su billetera."
+
+msgid "Commission received for commission id "
+msgstr "Comisión recibida por ID de comisión "
+
+msgid "Commission received for commission id #"
+msgstr "Comisión recibida por ID de comisión #"
+
+msgid "Minimum threshold amount to withdrawal commission is "
+msgstr "El monto mínimo para retiro de comisión es "
+
+msgid "(no title)"
+msgstr "(sin título)"
+
+msgid "Edit balance"
+msgstr "Editar saldo"
+
+msgid "OnplayWallet top-up form for your site."
+msgstr "Formulario de recarga de billetera OnplayWallet para tu sitio."
+
+msgid "Extensions"
+msgstr "Extensiones"
+
+msgid "Obtain Superpowers to get the best out of OnplayWallet"
+msgstr "Obtén superpoderes para sacar lo mejor de OnplayWallet"
+
+msgid "Obtain Superpowers to get the best out of OnplayWallet"
+msgstr "Obtén superpoderes para sacar lo mejor de OnplayWallet"
+
+msgid "Use superpowers to stand above the crowd. our high-octane add-ons are designed to boost your store wallet features."
+msgstr "Usa superpoderes para destacar. Nuestros complementos de alto rendimiento están diseñados para potenciar las funciones de billetera de tu tienda."
+
+msgid "Learn More"
+msgstr "Saber más"
+
+msgid "Premium plugins"
+msgstr "Plugins premium"
+
+msgid "View OnplayWallet premium plugins"
+msgstr "Ver plugins premium de OnplayWallet"
+
+msgid "View OnplayWallet premium plugins"
+msgstr "Ver plugins premium de OnplayWallet"
+
+msgid "API docs"
+msgstr "Documentación API"
+
+msgid "View OnplayWallet API docs"
+msgstr "Ver documentación API de OnplayWallet"
+
+msgid "View OnplayWallet API docs"
+msgstr "Ver documentación API de OnplayWallet"
+
+msgid "Support forum"
+msgstr "Foro de soporte"
+
+msgid "Visit community forums"
+msgstr "Visitar foros de la comunidad"
+
+msgid "Saldo en cache. El POS no responde en este momento."
+msgstr "Saldo en caché. El POS no responde en este momento."
+
+msgid "Pay at POS with QR"
+msgstr "Pagar en POS con QR"
+
+msgid "Wallet QR Code"
+msgstr "Código QR de billetera"
+
+msgid "Show this code at any OnplayPOS terminal"
+msgstr "Muestra este código en cualquier terminal OnplayPOS"
+
+msgid "OnplayPOS Integration"
+msgstr "Integración OnplayPOS"
+
+msgid "Connection Status"
+msgstr "Estado de conexión"
+
+msgid "Integration"
+msgstr "Integración"
+
+msgid "Enabled & Configured"
+msgstr "Activado y configurado"
+
+msgid "Not configured"
+msgstr "No configurado"
+
+msgid "Configure Settings"
+msgstr "Configurar ajustes"
+
+msgid "POS API URL"
+msgstr "URL de la API POS"
+
+msgid "Not set"
+msgstr "No establecido"
+
+msgid "Auto-sync"
+msgstr "Sincronización automática"
+
+msgid "QR Payments"
+msgstr "Pagos QR"
+
+msgid "Sync Direction"
+msgstr "Dirección de sincronización"
+
+msgid "Bidirectional"
+msgstr "Bidireccional"
+
+msgid "WooCommerce -> POS"
+msgstr "WooCommerce -> POS"
+
+msgid "POS -> WooCommerce"
+msgstr "POS -> WooCommerce"
+
+msgid "Test Connection"
+msgstr "Probar conexión"
+
+msgid "Connection failed:"
+msgstr "Error de conexión:"
+
+msgid "Connection successful!"
+msgstr "¡Conexión exitosa!"
+
+msgid "API Endpoints for OnplayPOS"
+msgstr "Endpoints API para OnplayPOS"
+
+msgid "Configure your OnplayPOS system to use these endpoints:"
+msgstr "Configura tu sistema OnplayPOS para usar estos endpoints:"
+
+msgid "Endpoint"
+msgstr "Endpoint"
+
+msgid "Method"
+msgstr "Método"
+
+msgid "Get customer wallet balance"
+msgstr "Obtener saldo de billetera del cliente"
+
+msgid "Credit customer wallet (deposit)"
+msgstr "Acreditar billetera del cliente (depósito)"
+
+msgid "Debit customer wallet (POS payment)"
+msgstr "Debitar billetera del cliente (pago POS)"
+
+msgid "Get transaction history"
+msgstr "Obtener historial de transacciones"
+
+msgid "Process QR code payment"
+msgstr "Procesar pago con código QR"
+
+msgid "Look up customer by email or phone"
+msgstr "Buscar cliente por correo o teléfono"
+
+msgid "Receive webhook events from POS"
+msgstr "Recibir eventos webhook del POS"
+
+msgid "Health check / connection status"
+msgstr "Verificación de salud / estado de conexión"
+
+msgid "Authentication:"
+msgstr "Autenticación:"
+
+msgid "Include the header"
+msgstr "Incluir el encabezado"
+
+msgid "Webhook Configuration"
+msgstr "Configuración de Webhook"
+
+msgid "Configure your OnplayPOS to send webhooks to:"
+msgstr "Configura tu OnplayPOS para enviar webhooks a:"
+
+msgid "Include the header:"
+msgstr "Incluir el encabezado:"
+
+msgid "Supported events:"
+msgstr "Eventos soportados:"
+
+msgid "Credit a customer wallet from POS"
+msgstr "Acreditar billetera del cliente desde POS"
+
+msgid "Debit a customer wallet from POS"
+msgstr "Debitar billetera del cliente desde POS"
+
+msgid "Create a new customer from POS"
+msgstr "Crear un nuevo cliente desde POS"
+
+msgid "Test connectivity"
+msgstr "Probar conectividad"
