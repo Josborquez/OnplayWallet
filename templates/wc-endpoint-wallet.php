@@ -89,9 +89,35 @@ if ( ! function_exists( 'is_wallet_tab_active' ) ) {
 		<!-- Balance Card -->
 		<div class="woo-wallet-balance-card">
 			<h3><?php esc_html_e( 'Total Balance', 'woo-wallet' ); ?></h3>
-			<p class="woo-wallet-price"><?php echo woo_wallet()->wallet->get_wallet_balance( get_current_user_id() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
 			<?php
-			$pos_settings = get_option( '_wallet_settings_pos', array() );
+			$pos_settings    = get_option( '_wallet_settings_pos', array() );
+			$pos_ssot_active = isset( $pos_settings['pos_enable'] ) && 'on' === $pos_settings['pos_enable']
+				&& isset( $pos_settings['pos_is_ssot'] ) && 'on' === $pos_settings['pos_is_ssot'];
+
+			$wallet_balance_display = '';
+			$pos_degraded           = false;
+
+			if ( $pos_ssot_active && woo_wallet()->pos_connector->is_outbound_configured() ) {
+				$current_user = wp_get_current_user();
+				$balance_resp = woo_wallet()->pos_connector->get_balance( $current_user->user_email );
+				if ( ! is_wp_error( $balance_resp ) && isset( $balance_resp['balance'] ) ) {
+					$fresh_balance = floatval( $balance_resp['balance'] );
+					update_user_meta( $current_user->ID, '_current_woo_wallet_balance', $fresh_balance );
+					$wallet_balance_display = wc_price( $fresh_balance, woo_wallet_wc_price_args( $current_user->ID ) );
+				} else {
+					// Degraded mode: use local cache.
+					$pos_degraded           = true;
+					$wallet_balance_display = woo_wallet()->wallet->get_wallet_balance( get_current_user_id() );
+				}
+			} else {
+				$wallet_balance_display = woo_wallet()->wallet->get_wallet_balance( get_current_user_id() );
+			}
+			?>
+			<p class="woo-wallet-price"><?php echo $wallet_balance_display; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+			<?php if ( $pos_degraded ) : ?>
+				<p style="font-size:0.8em;opacity:0.8;margin-top:5px;"><?php esc_html_e( 'Saldo en cache. El POS no responde en este momento.', 'woo-wallet' ); ?></p>
+			<?php endif; ?>
+			<?php
 			if ( isset( $pos_settings['pos_enable'] ) && 'on' === $pos_settings['pos_enable'] && isset( $pos_settings['pos_enable_qr'] ) && 'on' === $pos_settings['pos_enable_qr'] ) :
 				$qr_payload = woo_wallet()->pos_connector->generate_wallet_qr( get_current_user_id() );
 				if ( ! is_wp_error( $qr_payload ) ) :
@@ -151,8 +177,25 @@ if ( ! function_exists( 'is_wallet_tab_active' ) ) {
 			<!-- Recent Transactions -->
 			<div class="woo-wallet-transactions-list">
 				<h3 class="woo-wallet-section-title"><?php esc_html_e( 'Balance History', 'woo-wallet' ); ?></h3>
-				<?php $transactions = get_wallet_transactions( array( 'limit' => apply_filters( 'woo_wallet_transactions_count', 10 ) ) ); ?>
-				<?php if ( ! empty( $transactions ) ) { ?>
+				<?php
+				$pos_txn_data      = null;
+				$pos_txn_available = false;
+
+				// Try to fetch transactions from POS when SSoT is active.
+				if ( $pos_ssot_active && woo_wallet()->pos_connector->is_outbound_configured() ) {
+					$current_user_txn = wp_get_current_user();
+					$pos_txn_data     = woo_wallet()->pos_connector->get_transactions(
+						$current_user_txn->user_email,
+						apply_filters( 'woo_wallet_transactions_count', 10 ),
+						1
+					);
+					if ( ! is_wp_error( $pos_txn_data ) && isset( $pos_txn_data['transactions'] ) && ! empty( $pos_txn_data['transactions'] ) ) {
+						$pos_txn_available = true;
+					}
+				}
+
+				if ( $pos_txn_available ) :
+				?>
 					<table class="woo-wallet-transactions-table">
 						<thead>
 							<tr>
@@ -162,24 +205,60 @@ if ( ! function_exists( 'is_wallet_tab_active' ) ) {
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $transactions as $transaction ) : ?> 
+							<?php foreach ( $pos_txn_data['transactions'] as $pos_txn ) : ?>
+								<?php
+								$txn_type   = isset( $pos_txn['type'] ) ? $pos_txn['type'] : 'debit';
+								$txn_amount = isset( $pos_txn['amount'] ) ? floatval( $pos_txn['amount'] ) : 0;
+								$txn_desc   = isset( $pos_txn['description'] ) ? $pos_txn['description'] : ( isset( $pos_txn['details'] ) ? $pos_txn['details'] : '' );
+								$txn_date   = isset( $pos_txn['date'] ) ? $pos_txn['date'] : ( isset( $pos_txn['createdAt'] ) ? $pos_txn['createdAt'] : '' );
+								?>
 								<tr>
-									<td><?php echo esc_html( wc_string_to_datetime( $transaction->date )->date_i18n( wc_date_format() ) ); ?></td>
-									<td><?php echo wp_kses_post( $transaction->details ); ?></td>
-									<td class="amount <?php echo esc_attr( $transaction->type ); ?>">
+									<td><?php echo $txn_date ? esc_html( wp_date( wc_date_format(), strtotime( $txn_date ) ) ) : '—'; ?></td>
+									<td><?php echo esc_html( $txn_desc ); ?></td>
+									<td class="amount <?php echo esc_attr( $txn_type ); ?>">
 										<?php
-										echo 'credit' === $transaction->type ? '+' : '-';
-										echo wp_kses_post( wc_price( apply_filters( 'woo_wallet_amount', $transaction->amount, $transaction->currency, $transaction->user_id ), woo_wallet_wc_price_args( $transaction->user_id ) ) );
+										echo 'credit' === $txn_type ? '+' : '-';
+										echo wp_kses_post( wc_price( $txn_amount ) );
 										?>
 									</td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
 					</table>
+				<?php else : ?>
 					<?php
-				} else {
-					echo '<p style="padding: 20px; color: #666; text-align: center;">' . esc_html__( 'No transactions found', 'woo-wallet' ) . '</p>';
-				}
+					// Fallback to local transactions.
+					$transactions = get_wallet_transactions( array( 'limit' => apply_filters( 'woo_wallet_transactions_count', 10 ) ) );
+					?>
+					<?php if ( ! empty( $transactions ) ) { ?>
+						<table class="woo-wallet-transactions-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Date', 'woo-wallet' ); ?></th>
+									<th><?php esc_html_e( 'Description', 'woo-wallet' ); ?></th>
+									<th style="text-align: right;"><?php esc_html_e( 'Amount', 'woo-wallet' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ( $transactions as $transaction ) : ?>
+									<tr>
+										<td><?php echo esc_html( wc_string_to_datetime( $transaction->date )->date_i18n( wc_date_format() ) ); ?></td>
+										<td><?php echo wp_kses_post( $transaction->details ); ?></td>
+										<td class="amount <?php echo esc_attr( $transaction->type ); ?>">
+											<?php
+											echo 'credit' === $transaction->type ? '+' : '-';
+											echo wp_kses_post( wc_price( apply_filters( 'woo_wallet_amount', $transaction->amount, $transaction->currency, $transaction->user_id ), woo_wallet_wc_price_args( $transaction->user_id ) ) );
+											?>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php
+					} else {
+						echo '<p style="padding: 20px; color: #666; text-align: center;">' . esc_html__( 'No transactions found', 'woo-wallet' ) . '</p>';
+					}
+				endif;
 				?>
 			</div>
 		<?php } ?>

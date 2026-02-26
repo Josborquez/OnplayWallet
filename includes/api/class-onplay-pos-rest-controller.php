@@ -210,6 +210,40 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			)
 		);
 
+		// POST /onplay/v1/pos/customer - Create customer from POS.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/customer',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'create_customer' ),
+					'permission_callback' => array( $this, 'check_pos_permissions' ),
+					'args'                => array(
+						'email'    => array(
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_email',
+						),
+						'name'     => array(
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+							'default'           => '',
+						),
+						'phone'    => array(
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+							'default'           => '',
+						),
+						'password' => array(
+							'type'    => 'string',
+							'default' => '',
+						),
+					),
+				),
+			)
+		);
+
 		// POST /onplay/v1/pos/webhook - Receive webhook events from POS.
 		register_rest_route(
 			$this->namespace,
@@ -286,10 +320,12 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'onplay_webhook_no_signature', __( 'Missing webhook signature.', 'woo-wallet' ), array( 'status' => 401 ) );
 		}
 
-		$body            = $request->get_body();
-		$expected_sig    = hash_hmac( 'sha256', $body, $webhook_secret );
+		$body         = $request->get_body();
+		$expected_raw = hash_hmac( 'sha256', $body, $webhook_secret );
+		$expected_pre = 'sha256=' . $expected_raw;
 
-		if ( ! hash_equals( $expected_sig, $signature ) ) {
+		// Support both raw hash and sha256= prefixed signature.
+		if ( ! hash_equals( $expected_raw, $signature ) && ! hash_equals( $expected_pre, $signature ) ) {
 			return new WP_Error( 'onplay_webhook_invalid_signature', __( 'Invalid webhook signature.', 'woo-wallet' ), array( 'status' => 403 ) );
 		}
 
@@ -721,15 +757,21 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// Extract data payload (webhook may use 'data' wrapper or flat body).
+		$data = isset( $body['data'] ) ? $body['data'] : $body;
+
 		switch ( $event ) {
 			case 'wallet.credit':
-				return $this->handle_webhook_credit( $body );
+				return $this->handle_webhook_credit( $data );
 
 			case 'wallet.debit':
-				return $this->handle_webhook_debit( $body );
+				return $this->handle_webhook_debit( $data );
+
+			case 'wallet.balance_update':
+				return $this->handle_webhook_balance_update( $data );
 
 			case 'customer.created':
-				return $this->handle_webhook_customer_created( $body );
+				return $this->handle_webhook_customer_created( $data );
 
 			case 'ping':
 				return new WP_REST_Response(
@@ -794,7 +836,7 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$details        = __( 'Credit from OnplayPOS', 'woo-wallet' );
+		$details = __( 'Credit from OnplayPOS', 'woo-wallet' );
 		if ( $reference ) {
 			$details .= ' #' . $reference;
 		}
@@ -805,6 +847,11 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			if ( $reference ) {
 				update_wallet_transaction_meta( $transaction_id, '_pos_reference', $reference, $user->ID );
 			}
+		}
+
+		// Update cache with POS-provided balance if available.
+		if ( isset( $data['balance'] ) ) {
+			update_user_meta( $user->ID, '_current_woo_wallet_balance', floatval( $data['balance'] ) );
 		}
 
 		return new WP_REST_Response(
@@ -870,10 +917,46 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			}
 		}
 
+		// Update cache with POS-provided balance if available.
+		if ( isset( $data['balance'] ) ) {
+			update_user_meta( $user->ID, '_current_woo_wallet_balance', floatval( $data['balance'] ) );
+		}
+
 		return new WP_REST_Response(
 			array(
 				'success'        => true,
 				'transaction_id' => $transaction_id,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Handle wallet.balance_update webhook - manual balance sync.
+	 *
+	 * @param array $data Webhook data.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	private function handle_webhook_balance_update( $data ) {
+		$email   = isset( $data['email'] ) ? sanitize_email( $data['email'] ) : '';
+		$balance = isset( $data['balance'] ) ? floatval( $data['balance'] ) : null;
+
+		if ( ! $email || is_null( $balance ) ) {
+			return new WP_Error( 'onplay_webhook_invalid_data', __( 'Invalid webhook data. Requires email and balance.', 'woo-wallet' ), array( 'status' => 400 ) );
+		}
+
+		$user = get_user_by( 'email', $email );
+		if ( ! $user ) {
+			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'woo-wallet' ), array( 'status' => 404 ) );
+		}
+
+		update_user_meta( $user->ID, '_current_woo_wallet_balance', $balance );
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => 'Balance cache updated.',
+				'balance' => $balance,
 			),
 			200
 		);
@@ -904,30 +987,38 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Create new WooCommerce customer.
-		$first_name = isset( $data['first_name'] ) ? sanitize_text_field( $data['first_name'] ) : '';
-		$last_name  = isset( $data['last_name'] ) ? sanitize_text_field( $data['last_name'] ) : '';
-		$phone      = isset( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '';
-		$password   = wp_generate_password( 12, true );
+		// Parse name: support both 'name' (single) and 'first_name'/'last_name' (separate).
+		$first_name = '';
+		$last_name  = '';
+		if ( isset( $data['name'] ) && ! empty( $data['name'] ) ) {
+			$parts      = explode( ' ', sanitize_text_field( $data['name'] ), 2 );
+			$first_name = $parts[0];
+			$last_name  = isset( $parts[1] ) ? $parts[1] : '';
+		}
+		if ( isset( $data['first_name'] ) ) {
+			$first_name = sanitize_text_field( $data['first_name'] );
+		}
+		if ( isset( $data['last_name'] ) ) {
+			$last_name = sanitize_text_field( $data['last_name'] );
+		}
 
-		$customer = new WC_Customer();
-		$customer->set_email( $email );
-		$customer->set_username( sanitize_user( $email ) );
-		$customer->set_password( $password );
-		$customer->set_first_name( $first_name );
-		$customer->set_last_name( $last_name );
-		$customer->set_billing_first_name( $first_name );
-		$customer->set_billing_last_name( $last_name );
-		$customer->set_billing_email( $email );
+		$phone    = isset( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '';
+		$password = isset( $data['password'] ) && ! empty( $data['password'] ) ? $data['password'] : wp_generate_password( 12, true );
+
+		$customer_id = wc_create_new_customer( $email, $email, $password );
+		if ( is_wp_error( $customer_id ) ) {
+			return new WP_Error( 'onplay_customer_creation_failed', $customer_id->get_error_message(), array( 'status' => 400 ) );
+		}
+
+		update_user_meta( $customer_id, 'first_name', $first_name );
+		update_user_meta( $customer_id, 'last_name', $last_name );
+		update_user_meta( $customer_id, 'billing_first_name', $first_name );
+		update_user_meta( $customer_id, 'billing_last_name', $last_name );
+		update_user_meta( $customer_id, 'billing_email', $email );
 		if ( $phone ) {
-			$customer->set_billing_phone( $phone );
+			update_user_meta( $customer_id, 'billing_phone', $phone );
 		}
-		$customer_id = $customer->save();
-
-		if ( ! $customer_id ) {
-			return new WP_Error( 'onplay_customer_creation_failed', __( 'Failed to create customer.', 'woo-wallet' ), array( 'status' => 500 ) );
-		}
-
+		update_user_meta( $customer_id, '_current_woo_wallet_balance', 0 );
 		update_user_meta( $customer_id, '_onplay_pos_customer', true );
 
 		return new WP_REST_Response(
@@ -935,6 +1026,73 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 				'success' => true,
 				'message' => 'Customer created.',
 				'user_id' => $customer_id,
+			),
+			201
+		);
+	}
+
+	/**
+	 * POST /onplay/v1/pos/customer - Create customer from POS.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function create_customer( $request ) {
+		$email    = sanitize_email( $request->get_param( 'email' ) );
+		$name     = sanitize_text_field( $request->get_param( 'name' ) );
+		$phone    = sanitize_text_field( $request->get_param( 'phone' ) );
+		$password = $request->get_param( 'password' );
+
+		if ( ! is_email( $email ) ) {
+			return new WP_Error( 'onplay_invalid_email', __( 'Invalid email address.', 'woo-wallet' ), array( 'status' => 400 ) );
+		}
+
+		// If user already exists, return existing.
+		if ( email_exists( $email ) ) {
+			$user = get_user_by( 'email', $email );
+			return new WP_REST_Response(
+				array(
+					'exists'  => true,
+					'user_id' => $user->ID,
+				),
+				200
+			);
+		}
+
+		if ( empty( $password ) ) {
+			$password = wp_generate_password( 12, true );
+		}
+
+		$user_id = wc_create_new_customer( $email, $email, $password );
+		if ( is_wp_error( $user_id ) ) {
+			return new WP_REST_Response(
+				array( 'error' => $user_id->get_error_message() ),
+				400
+			);
+		}
+
+		// Parse name.
+		$first_name = '';
+		$last_name  = '';
+		if ( $name ) {
+			$parts      = explode( ' ', $name, 2 );
+			$first_name = $parts[0];
+			$last_name  = isset( $parts[1] ) ? $parts[1] : '';
+		}
+
+		update_user_meta( $user_id, 'first_name', $first_name );
+		update_user_meta( $user_id, 'last_name', $last_name );
+		update_user_meta( $user_id, 'billing_email', $email );
+		update_user_meta( $user_id, 'billing_phone', $phone );
+		update_user_meta( $user_id, 'billing_first_name', $first_name );
+		update_user_meta( $user_id, 'billing_last_name', $last_name );
+		update_user_meta( $user_id, '_current_woo_wallet_balance', 0 );
+		update_user_meta( $user_id, '_onplay_pos_customer', true );
+
+		return new WP_REST_Response(
+			array(
+				'created' => true,
+				'user_id' => $user_id,
 			),
 			201
 		);

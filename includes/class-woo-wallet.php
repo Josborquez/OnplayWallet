@@ -151,6 +151,7 @@ final class Woo_Wallet {
 		add_action( 'widgets_init', array( $this, 'woo_wallet_widget_init' ) );
 		add_action( 'init', array( $this, 'woocommerce_loaded_callback' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
+		add_action( 'wp_ajax_onplay_pos_test_connection', array( $this, 'ajax_pos_test_connection' ) );
 		// Registers WooCommerce Blocks integration.
 		add_action( 'woocommerce_blocks_loaded', array( __CLASS__, 'add_woocommerce_block_support' ) );
 		do_action( 'woo_wallet_init' );
@@ -267,6 +268,40 @@ final class Woo_Wallet {
 		include_once WOO_WALLET_ABSPATH . 'includes/api/class-onplay-pos-rest-controller.php';
 		$pos_controller = new OnplayPOS_REST_Controller();
 		$pos_controller->register_routes();
+	}
+
+	/**
+	 * AJAX handler: Test POS connection from admin settings.
+	 */
+	public function ajax_pos_test_connection() {
+		check_ajax_referer( 'onplay_pos_test_connection' );
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'woo-wallet' ) ) );
+		}
+
+		if ( ! $this->pos_connector->is_outbound_configured() ) {
+			wp_send_json_error( array( 'message' => __( 'POS API URL and API Key are not configured.', 'woo-wallet' ) ) );
+		}
+
+		$result = $this->pos_connector->test_connection();
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		$version = isset( $result['version'] ) ? $result['version'] : '';
+		$status  = isset( $result['status'] ) ? $result['status'] : 'ok';
+		wp_send_json_success(
+			array(
+				'message' => sprintf(
+					/* translators: 1: POS status, 2: POS version */
+					__( 'Connection successful. Status: %1$s. Version: %2$s', 'woo-wallet' ),
+					$status,
+					$version
+				),
+				'data'    => $result,
+			)
+		);
 	}
 	/**
 	 * Add settings link to plugin list.
