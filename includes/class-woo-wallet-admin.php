@@ -89,7 +89,6 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 			add_filter( 'woocommerce_order_actions', array( $this, 'woocommerce_order_actions' ) );
 			add_action( 'woocommerce_order_action_recalculate_order_cashback', array( $this, 'recalculate_order_cashback' ) );
 
-			add_action( 'admin_notices', array( $this, 'show_promotions' ) );
 			add_filter( 'woocommerce_settings_pages', array( $this, 'add_woocommerce_account_endpoint_settings' ) );
 
 			add_action( 'wp_nav_menu_item_custom_fields', array( $this, 'wp_nav_menu_item_custom_fields' ) );
@@ -98,8 +97,6 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 
 			add_action( 'edit_user_profile', array( $this, 'add_wallet_management_fields' ) );
 			add_action( 'show_user_profile', array( $this, 'add_wallet_management_fields' ) );
-
-			add_filter( 'plugin_row_meta', array( __CLASS__, 'plugin_row_meta' ), 10, 2 );
 
 			add_action( 'current_screen', array( $this, 'remove_woocommerce_help_tabs' ), 999 );
 		}
@@ -119,48 +116,6 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 			}
 		}
 
-		/**
-		 * Show row meta on the plugin screen.
-		 *
-		 * @param mixed $links Plugin Row Meta.
-		 * @param mixed $file  Plugin Base file.
-		 *
-		 * @return array
-		 */
-		public static function plugin_row_meta( $links, $file ) {
-			if ( plugin_basename( WOO_WALLET_PLUGIN_FILE ) !== $file ) {
-				return $links;
-			}
-
-			/**
-			 * The Premium plugins URL.
-			 *
-			 * @since 1.4.6
-			 */
-			$premium_plugings_url = apply_filters( 'onplaywallet_premium_plugin_url', 'https://github.com/Josborquez/products/' );
-
-			/**
-			 * The OnplayWallet API documentation URL.
-			 *
-			 * @since 1.4.6
-			 */
-			$api_docs_url = apply_filters( 'onplaywallet_apidocs_url', 'https://github.com/malsubrata/woo-wallet/wiki/API-V3' );
-
-			/**
-			 * The community OnplayWallet support URL.
-			 *
-			 * @since 1.4.6
-			 */
-			$community_support_url = apply_filters( 'onplaywallet_community_support_url', 'https://github.com/Josborquez/forums/forum/onplaywallet/' );
-
-			$row_meta = array(
-				'plugins' => '<a href="' . esc_url( $premium_plugings_url ) . '" aria-label="' . esc_attr__( 'View OnplayWallet premium plugins', 'woo-wallet' ) . '">' . esc_html__( 'Premium plugins', 'woo-wallet' ) . '</a>',
-				'apidocs' => '<a href="' . esc_url( $api_docs_url ) . '" aria-label="' . esc_attr__( 'View OnplayWallet API docs', 'woo-wallet' ) . '">' . esc_html__( 'API docs', 'woo-wallet' ) . '</a>',
-				'support' => '<a href="' . esc_url( $community_support_url ) . '" aria-label="' . esc_attr__( 'Visit community forums', 'woo-wallet' ) . '">' . esc_html__( 'Support forum', 'woo-wallet' ) . '</a>',
-			);
-
-			return array_merge( $links, $row_meta );
-		}
 		/**
 		 * Wallet settings fields on user edit page.
 		 *
@@ -965,26 +920,9 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 			}
 			$current_screen                = get_current_screen();
 			$woo_wallet_settings_screen_id = sanitize_title( __( 'OnplayWallet', 'woo-wallet' ) );
-			$woo_wallet_pages              = array( 'toplevel_page_woo-wallet', 'admin_page_woo-wallet-transactions', "{$woo_wallet_settings_screen_id}_page_woo-wallet-actions", "{$woo_wallet_settings_screen_id}_page_woo-wallet-extensions", "{$woo_wallet_settings_screen_id}_page_woo-wallet-settings" );
+			$woo_wallet_pages              = array( 'toplevel_page_woo-wallet', 'admin_page_woo-wallet-transactions', "{$woo_wallet_settings_screen_id}_page_woo-wallet-actions", "{$woo_wallet_settings_screen_id}_page_woo-wallet-settings" );
 			if ( isset( $current_screen->id ) && in_array( $current_screen->id, $woo_wallet_pages, true ) ) {
-				if ( ! get_option( 'woocommerce_wallet_admin_footer_text_rated' ) ) {
-					$footer_text = sprintf(
-						/* translators: Plugin name */
-						__( 'If you like %1$s please leave us a %2$s rating. A huge thanks in advance!', 'woo-wallet' ),
-						sprintf( '<strong>%s</strong>', esc_html__( 'OnplayWallet', 'woo-wallet' ) ),
-						'<a href="https://wordpress.org/support/plugin/woo-wallet/reviews?rate=5#new-post" target="_blank" class="wc-rating-link" data-rated="' . esc_attr__( 'Thanks :)', 'woo-wallet' ) . '">&#9733;&#9733;&#9733;&#9733;&#9733;</a>'
-					);
-					wc_enqueue_js(
-						"
-					jQuery( 'a.wc-rating-link' ).click( function() {
-						jQuery.post( '" . WC()->ajax_url() . "', { action: 'woocommerce_wallet_rated' } );
-						jQuery( this ).parent().text( jQuery( this ).data( 'rated' ) );
-					});
-				"
-					);
-				} else {
-					$footer_text = __( 'Thank you for using OnplayWallet.', 'woo-wallet' );
-				}
+				$footer_text = __( 'Gracias por usar OnplayWallet.', 'woo-wallet' );
 			}
 			return $footer_text;
 		}
@@ -1194,114 +1132,6 @@ if ( ! class_exists( 'Woo_Wallet_Admin' ) ) {
 				}
 			}
 		}
-		/**
-		 * Show promotional message.
-		 *
-		 * @return void
-		 */
-		public function show_promotions() {
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return;
-			}
-			if ( get_option( '_woo_wallet_promotion_dismissed' ) ) {
-				return;
-			}
-			?>
-			<div class="notice woo-wallet-promotional-notice">
-				<div class="thumbnail">
-					<img src="//plugins.svn.wordpress.org/woo-wallet/assets/icon-256x256.png" alt="Obtain Superpowers to get the best out of OnplayWallet" class="">
-				</div>
-				<div class="content">
-					<h2 class=""><?php esc_html_e( 'Obtain Superpowers to get the best out of OnplayWallet', 'woo-wallet' ); ?></h2>
-					<p><?php esc_html_e( 'Use superpowers to stand above the crowd. our high-octane add-ons are designed to boost your store wallet features.', 'woo-wallet' ); ?></p>
-					<a href="https://github.com/Josborquez/products/" class="button button-primary promo-btn" target="_blank"><?php esc_html_e( 'Learn More', 'woo-wallet' ); ?> →</a>
-				</div>
-				<span class="prmotion-close-icon dashicons dashicons-no-alt"></span>
-				<div class="clear"></div>
-			</div>
-			<style>
-				.woo-wallet-promotional-notice {
-					padding: 20px;
-					box-sizing: border-box;
-					position: relative;
-				}
-
-				.woo-wallet-promotional-notice .prmotion-close-icon{
-					position: absolute;
-					top: 20px;
-					right: 20px;
-					cursor: pointer;
-				}
-
-				.woo-wallet-promotional-notice .thumbnail {
-					width: 9.3%;
-					float: left;
-				}
-
-				.woo-wallet-promotional-notice .thumbnail img{
-					width: 100%;
-					height: auto;
-					box-shadow: 0px 0px 25px #bbbbbb;
-					margin-right: 20px;
-					box-sizing: border-box;
-					border-radius: 10px;
-				}
-
-				.woo-wallet-promotional-notice .content {
-					float:left;
-					margin-left: 20px;
-					width: 75%;
-				}
-
-				.woo-wallet-promotional-notice .content h2 {
-					margin: 3px 0px 5px;
-					font-size: 17px;
-					font-weight: bold;
-					color: #555;
-					line-height: 25px;
-				}
-
-				.woo-wallet-promotional-notice .content p {
-					font-size: 14px;
-					text-align: justify;
-					color: #666;
-					margin-bottom: 10px;
-				}
-
-				.woo-wallet-promotional-notice .content a {
-					border: none;
-					box-shadow: none;
-					height: 31px;
-					line-height: 30px;
-					border-radius: 3px;
-					background: #a46396;
-					text-shadow: none;
-					padding: 0px 20px;
-					text-align: center;
-				}
-
-			</style>
-			<script type='text/javascript'>
-				jQuery(document).ready(function($){
-					$('body').on('click', '.woo-wallet-promotional-notice span.prmotion-close-icon', function(e) {
-						e.preventDefault();
-
-						var self = $(this);
-
-						wp.ajax.send( 'woo-wallet-dismiss-promotional-notice', {
-							data: {
-								nonce: '<?php echo esc_attr( wp_create_nonce( 'woo_wallet_admin' ) ); ?>'
-							},
-							complete: function( resp ) {
-								self.closest('.woo-wallet-promotional-notice').fadeOut(200);
-							}
-						} );
-					});
-				});
-			</script>
-			<?php
-		}
-
 		/**
 		 * OnplayPOS status page.
 		 */

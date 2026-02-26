@@ -512,16 +512,21 @@ if ( ! function_exists( 'get_wallet_transactions_count' ) ) {
 	 */
 	function get_wallet_transactions_count( $user_id = null, $include_deleted = false ) {
 		global $wpdb;
-		$sql = "SELECT COUNT(*) FROM {$wpdb->base_prefix}woo_wallet_transactions";
+		$where  = array();
+		$params = array();
 		if ( $user_id ) {
-			$sql .= " WHERE user_id=$user_id";
+			$where[]  = 'user_id = %d';
+			$params[] = absint( $user_id );
 		}
 		if ( ! $include_deleted ) {
-			if ( $user_id ) {
-				$sql .= ' AND deleted=0';
-			} else {
-				$sql .= 'WHERE deleted=0';
-			}
+			$where[] = 'deleted = 0';
+		}
+		$sql = "SELECT COUNT(*) FROM {$wpdb->base_prefix}woo_wallet_transactions";
+		if ( ! empty( $where ) ) {
+			$sql .= ' WHERE ' . implode( ' AND ', $where );
+		}
+		if ( ! empty( $params ) ) {
+			$sql = $wpdb->prepare( $sql, $params ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 		return $wpdb->get_var( $sql ); // @codingStandardsIgnoreLine
 	}
