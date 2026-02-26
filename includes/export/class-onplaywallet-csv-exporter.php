@@ -89,21 +89,21 @@ class OnplayWallet_CSV_Exporter {
 	public function get_default_column_names() {
 		if ( 'transactions' === $this->export_type ) {
 			$default_column_names = array(
-				'transaction_id' => __( 'ID', 'woo-wallet' ),
-				'user_id'        => __( 'User ID', 'woo-wallet' ),
-				'email'          => __( 'Email', 'woo-wallet' ),
-				'type'           => __( 'Type', 'woo-wallet' ),
-				'currency'       => __( 'Currency', 'woo-wallet' ),
-				'amount'         => __( 'Amount', 'woo-wallet' ),
-				'details'        => __( 'Details', 'woo-wallet' ),
-				'created_by'     => __( 'Added by', 'woo-wallet' ),
-				'date'           => __( 'Date', 'woo-wallet' ),
+				'transaction_id' => __( 'ID', 'onplay-wallet' ),
+				'user_id'        => __( 'User ID', 'onplay-wallet' ),
+				'email'          => __( 'Email', 'onplay-wallet' ),
+				'type'           => __( 'Type', 'onplay-wallet' ),
+				'currency'       => __( 'Currency', 'onplay-wallet' ),
+				'amount'         => __( 'Amount', 'onplay-wallet' ),
+				'details'        => __( 'Details', 'onplay-wallet' ),
+				'created_by'     => __( 'Added by', 'onplay-wallet' ),
+				'date'           => __( 'Date', 'onplay-wallet' ),
 			);
 		} else {
 			$default_column_names = array(
-				'user_id' => __( 'User ID', 'woo-wallet' ),
-				'email'   => __( 'Email', 'woo-wallet' ),
-				'amount'  => __( 'Amount', 'woo-wallet' ),
+				'user_id' => __( 'User ID', 'onplay-wallet' ),
+				'email'   => __( 'Email', 'onplay-wallet' ),
+				'amount'  => __( 'Amount', 'onplay-wallet' ),
 			);
 		}
 		return apply_filters( "onplaywallet_{$this->export_type}_exporter_default_column_names", $default_column_names );
@@ -285,7 +285,7 @@ class OnplayWallet_CSV_Exporter {
 				$params[] = $after;
 				$params[] = $before;
 			}
-			$sql = "SELECT COUNT(*) FROM {$wpdb->base_prefix}woo_wallet_transactions AS transactions WHERE {$where};";
+			$sql = "SELECT COUNT(*) FROM {$wpdb->base_prefix}onplay_wallet_transactions AS transactions WHERE {$where};";
 			if ( ! empty( $params ) ) {
 				$sql = $wpdb->prepare( $sql, $params ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			}
@@ -322,7 +322,7 @@ class OnplayWallet_CSV_Exporter {
 			}
 			$offset   = absint( $this->per_page * ( $this->get_step() - 1 ) );
 			$per_page = absint( $this->per_page );
-			$sql      = "SELECT * FROM {$wpdb->base_prefix}woo_wallet_transactions AS transactions WHERE {$where} ORDER BY transactions.transaction_id DESC LIMIT %d, %d;";
+			$sql      = "SELECT * FROM {$wpdb->base_prefix}onplay_wallet_transactions AS transactions WHERE {$where} ORDER BY transactions.transaction_id DESC LIMIT %d, %d;";
 			$params[] = $offset;
 			$params[] = $per_page;
 			$sql      = $wpdb->prepare( $sql, $params ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -343,7 +343,7 @@ class OnplayWallet_CSV_Exporter {
 				$data[] = array(
 					'user_id' => $user->ID,
 					'email'   => $user->data->user_email,
-					'amount'  => woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' ),
+					'amount'  => onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' ),
 				);
 			}
 			return $data;

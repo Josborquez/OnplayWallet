@@ -92,7 +92,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 			}
 			// Only auto-sync in non-SSoT mode (legacy).
 			if ( ! $this->is_ssot ) {
-				add_action( 'woo_wallet_transaction_recorded', array( $this, 'sync_transaction_to_pos' ), 10, 4 );
+				add_action( 'onplay_wallet_transaction_recorded', array( $this, 'sync_transaction_to_pos' ), 10, 4 );
 			}
 		}
 
@@ -234,7 +234,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 			if ( ! $this->is_outbound_configured() ) {
 				return new WP_Error(
 					'pos_not_configured',
-					__( 'POS API is not configured. Set POS API URL and API Key in settings.', 'woo-wallet' )
+					__( 'POS API is not configured. Set POS API URL and API Key in settings.', 'onplay-wallet' )
 				);
 			}
 
@@ -294,7 +294,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 */
 		public function api_request( $endpoint, $method = 'GET', $data = array() ) {
 			if ( ! $this->is_outbound_configured() ) {
-				return new WP_Error( 'onplay_pos_not_configured', __( 'OnplayPOS outbound API is not configured.', 'woo-wallet' ) );
+				return new WP_Error( 'onplay_pos_not_configured', __( 'OnplayPOS outbound API is not configured.', 'onplay-wallet' ) );
 			}
 
 			$url  = $this->api_url . ltrim( $endpoint, '/' );
@@ -504,7 +504,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		public function register_customer( $user_id ) {
 			$user = get_userdata( $user_id );
 			if ( ! $user ) {
-				return new WP_Error( 'invalid_user', __( 'Invalid user.', 'woo-wallet' ) );
+				return new WP_Error( 'invalid_user', __( 'Invalid user.', 'onplay-wallet' ) );
 			}
 
 			return $this->api_request(
@@ -582,10 +582,10 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		public function generate_wallet_qr( $user_id ) {
 			$user = get_userdata( $user_id );
 			if ( ! $user ) {
-				return new WP_Error( 'invalid_user', __( 'Invalid user.', 'woo-wallet' ) );
+				return new WP_Error( 'invalid_user', __( 'Invalid user.', 'onplay-wallet' ) );
 			}
 
-			$balance   = woo_wallet()->wallet->get_wallet_balance( $user_id, 'edit' );
+			$balance   = onplay_wallet()->wallet->get_wallet_balance( $user_id, 'edit' );
 			$timestamp = time();
 			$token     = hash_hmac( 'sha256', $user->user_email . '|' . $timestamp, $this->api_secret ?: wp_salt( 'auth' ) );
 

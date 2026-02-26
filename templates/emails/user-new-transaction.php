@@ -2,7 +2,7 @@
 /**
  * Customer wallet transaction email
  *
- * This template can be overridden by copying it to yourtheme/woo-wallet/emails/user-new-transaction.php.
+ * This template can be overridden by copying it to yourtheme/onplay-wallet/emails/user-new-transaction.php.
  *
  * HOWEVER, on occasion we will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
@@ -27,10 +27,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 do_action( 'woocommerce_email_header', $email_heading, $email );
 ?>
 <?php if ( 'credit' === $type ) { ?>
-<p><?php esc_html_e( 'Thank you for using your wallet.', 'woo-wallet' ); ?> <?php echo wc_price( $amount, woo_wallet_wc_price_args( $user->ID ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <?php esc_html_e( 'has been credited to your wallet.', 'woo-wallet' ); ?> <?php esc_html_e( 'Current wallet balance is', 'woo-wallet' ); ?> <?php echo woo_wallet()->wallet->get_wallet_balance( $user->ID ); ?></p>
+<p><?php esc_html_e( 'Thank you for using your wallet.', 'onplay-wallet' ); ?> <?php echo wc_price( $amount, onplay_wallet_wc_price_args( $user->ID ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <?php esc_html_e( 'has been credited to your wallet.', 'onplay-wallet' ); ?> <?php esc_html_e( 'Current wallet balance is', 'onplay-wallet' ); ?> <?php echo onplay_wallet()->wallet->get_wallet_balance( $user->ID ); ?></p>
 <?php } ?>
 <?php if ( 'debit' === $type ) { ?>
-	<p><?php esc_html_e( 'Thank you for using your wallet.', 'woo-wallet' ); ?> <?php echo wc_price( $amount, woo_wallet_wc_price_args( $user->ID ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <?php esc_html_e( 'has been debited from your wallet.', 'woo-wallet' ); ?> <?php esc_html_e( 'Current wallet balance is', 'woo-wallet' ); ?> <?php echo woo_wallet()->wallet->get_wallet_balance( $user->ID ); ?></p>
+	<p><?php esc_html_e( 'Thank you for using your wallet.', 'onplay-wallet' ); ?> <?php echo wc_price( $amount, onplay_wallet_wc_price_args( $user->ID ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <?php esc_html_e( 'has been debited from your wallet.', 'onplay-wallet' ); ?> <?php esc_html_e( 'Current wallet balance is', 'onplay-wallet' ); ?> <?php echo onplay_wallet()->wallet->get_wallet_balance( $user->ID ); ?></p>
 <?php } ?>
 <?php
 /**

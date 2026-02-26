@@ -15,7 +15,7 @@
 | **API REST** | WordPress REST API + WooCommerce REST API v3 | — |
 | **Autenticación API** | HMAC-SHA256, WordPress Nonces, API Keys | — |
 | **Logging** | WC_Logger (canal `onplay-pos-connector`) | — |
-| **Internacionalización** | WordPress i18n (text domain: `woo-wallet`) | — |
+| **Internacionalización** | WordPress i18n (text domain: `onplay-wallet`) | — |
 | **Exportación** | CSV nativo (PHP `fputcsv`) | — |
 
 ---
@@ -23,23 +23,23 @@
 ## 2. Arquitectura del Plugin
 
 ```
-woo-wallet.php  (Entry point — Singleton)
+onplay-wallet.php  (Entry point — Singleton)
  │
- ├── includes/class-woo-wallet.php             → Clase principal (Singleton)
- │    ├── class-woo-wallet-install.php          → Instalación y migraciones DB
- │    ├── class-woo-wallet-wallet.php           → Lógica de crédito/débito/balance
- │    ├── class-woo-wallet-cashback.php         → Motor de cashback
- │    ├── class-woo-wallet-payment-method.php   → Gateway de pago WooCommerce
- │    ├── class-woo-wallet-admin.php            → Panel de administración
- │    ├── class-woo-wallet-frontend.php         → Interfaz de cliente
- │    ├── class-woo-wallet-ajax.php             → Endpoints AJAX
- │    ├── class-woo-wallet-settings.php         → Configuración
+ ├── includes/class-onplay-wallet.php             → Clase principal (Singleton)
+ │    ├── class-onplay-wallet-install.php          → Instalación y migraciones DB
+ │    ├── class-onplay-wallet-wallet.php           → Lógica de crédito/débito/balance
+ │    ├── class-onplay-wallet-cashback.php         → Motor de cashback
+ │    ├── class-onplay-wallet-payment-method.php   → Gateway de pago WooCommerce
+ │    ├── class-onplay-wallet-admin.php            → Panel de administración
+ │    ├── class-onplay-wallet-frontend.php         → Interfaz de cliente
+ │    ├── class-onplay-wallet-ajax.php             → Endpoints AJAX
+ │    ├── class-onplay-wallet-settings.php         → Configuración
  │    ├── class-onplay-pos-connector.php        → Conector saliente POS
- │    └── class-woo-wallet-actions.php          → Sistema de recompensas
+ │    └── class-onplay-wallet-actions.php          → Sistema de recompensas
  │
  ├── includes/api/
  │    ├── class-onplay-pos-rest-controller.php  → API entrante POS→WC
- │    └── class-wc-rest-woo-wallet-controller.php → API WooCommerce wallet
+ │    └── class-wc-rest-onplay-wallet-controller.php → API WooCommerce wallet
  │
  ├── includes/actions/                          → Acciones de recompensa
  ├── includes/marketplace/                      → Dokan, WCMp, WCFM
@@ -60,14 +60,14 @@ woo-wallet.php  (Entry point — Singleton)
 
 | Tabla | Propósito |
 |-------|----------|
-| `{prefix}woo_wallet_transactions` | Transacciones de wallet (crédito/débito, monto, balance, moneda, fecha) |
-| `{prefix}woo_wallet_transaction_meta` | Metadatos de transacciones (`_onplay_source`, `_pos_reference`, `_pos_sync_status`, etc.) |
+| `{prefix}onplay_wallet_transactions` | Transacciones de wallet (crédito/débito, monto, balance, moneda, fecha) |
+| `{prefix}onplay_wallet_transaction_meta` | Metadatos de transacciones (`_onplay_source`, `_pos_reference`, `_pos_sync_status`, etc.) |
 
 ### Metadata de WordPress utilizada
 
 | Tipo | Clave | Descripción |
 |------|-------|-------------|
-| User Meta | `_current_woo_wallet_balance` | Saldo actual del usuario |
+| User Meta | `_current_onplay_wallet_balance` | Saldo actual del usuario |
 | User Meta | `_is_wallet_locked` | Estado de bloqueo de la wallet |
 | User Meta | `_onplay_pos_customer` | Flag de cliente POS |
 | Order Meta | `_wallet_cashback` | Monto de cashback |
@@ -76,7 +76,7 @@ woo-wallet.php  (Entry point — Singleton)
 | Option | `_wallet_settings_general` | Configuración general |
 | Option | `_wallet_settings_credit` | Configuración de cashback |
 | Option | `_wallet_settings_pos` | Configuración OnplayPOS |
-| Option | `_woo_wallet_recharge_product` | ID del producto de recarga |
+| Option | `_onplay_wallet_recharge_product` | ID del producto de recarga |
 
 ---
 
@@ -125,7 +125,7 @@ woo-wallet.php  (Entry point — Singleton)
 
 ### 4.3 API WooCommerce Wallet
 
-**Archivos:** `includes/api/class-wc-rest-woo-wallet-controller.php`, `includes/api/Controllers/Version3/`
+**Archivos:** `includes/api/class-wc-rest-onplay-wallet-controller.php`, `includes/api/Controllers/Version3/`
 **Namespace:** `wc/v3`
 
 | Método | Ruta | Descripción |
@@ -140,13 +140,13 @@ woo-wallet.php  (Entry point — Singleton)
 
 ### 4.4 Endpoints AJAX internos
 
-**Archivo:** `includes/class-woo-wallet-ajax.php`
+**Archivo:** `includes/class-onplay-wallet-ajax.php`
 
 | Action | Descripción |
 |--------|-------------|
-| `woo_wallet_order_refund` | Procesar reembolsos |
-| `woo-wallet-user-search` | Autocompletado de usuarios |
-| `woo_wallet_partial_payment_update_session` | Actualizar sesión de pago parcial |
+| `onplay_wallet_order_refund` | Procesar reembolsos |
+| `onplay-wallet-user-search` | Autocompletado de usuarios |
+| `onplay_wallet_partial_payment_update_session` | Actualizar sesión de pago parcial |
 | `onplaywallet_export_user_search` | Buscar usuarios para exportación |
 | `onplaywallet_do_ajax_transaction_export` | Exportar transacciones CSV |
 | `lock_unlock_onplaywallet` | Bloquear/desbloquear wallets |

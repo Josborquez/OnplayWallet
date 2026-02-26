@@ -57,7 +57,7 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 							'email'  => array(
 								'required'          => true,
 								'type'              => 'string',
-								'description'       => __( 'User email address', 'woo-wallet' ),
+								'description'       => __( 'User email address', 'onplay-wallet' ),
 								'sanitize_callback' => 'sanitize_email',
 								'validate_callback' => 'rest_validate_request_arg',
 								'format'            => 'email',
@@ -65,16 +65,16 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 							'type'   => array(
 								'required'    => true,
 								'type'        => 'string',
-								'description' => __( 'Wallet transaction type.', 'woo-wallet' ),
+								'description' => __( 'Wallet transaction type.', 'onplay-wallet' ),
 							),
 							'amount' => array(
 								'required'    => true,
-								'description' => __( 'Wallet transaction amount.', 'woo-wallet' ),
+								'description' => __( 'Wallet transaction amount.', 'onplay-wallet' ),
 								'type'        => 'number',
 							),
 							'note'   => array(
 								'required'    => false,
-								'description' => __( 'Wallet transaction details.', 'woo-wallet' ),
+								'description' => __( 'Wallet transaction details.', 'onplay-wallet' ),
 								'type'        => 'string',
 							),
 						)
@@ -98,7 +98,7 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 							'email' => array(
 								'required'          => true,
 								'type'              => 'string',
-								'description'       => __( 'User email address', 'woo-wallet' ),
+								'description'       => __( 'User email address', 'onplay-wallet' ),
 								'sanitize_callback' => 'sanitize_email',
 								'validate_callback' => 'rest_validate_request_arg',
 								'format'            => 'email',
@@ -120,7 +120,7 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 		$params['email']    = array(
 			'required'          => true,
 			'type'              => 'string',
-			'description'       => __( 'User email address', 'woo-wallet' ),
+			'description'       => __( 'User email address', 'onplay-wallet' ),
 			'sanitize_callback' => 'sanitize_email',
 			'validate_callback' => 'rest_validate_request_arg',
 			'format'            => 'email',
@@ -128,14 +128,14 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 		$params['per_page'] = array(
 			'required'          => false,
 			'type'              => 'number',
-			'description'       => __( 'Transactions per page', 'woo-wallet' ),
+			'description'       => __( 'Transactions per page', 'onplay-wallet' ),
 			'validate_callback' => 'rest_validate_request_arg',
 			'default'           => -1,
 		);
 		$params['page']     = array(
 			'required'          => false,
 			'type'              => 'integer',
-			'description'       => __( 'Current page', 'woo-wallet' ),
+			'description'       => __( 'Current page', 'onplay-wallet' ),
 			'sanitize_callback' => 'absint',
 			'validate_callback' => 'rest_validate_request_arg',
 			'default'           => 1,
@@ -150,8 +150,8 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 	 * @return WP_Error|boolean
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( ! apply_filters( 'woo_wallet_rest_check_permissions', current_user_can( 'manage_woocommerce' ), 'read', $request ) ) {
-			return new WP_Error( 'woocommerce_rest_cannot_view', __( 'Sorry, you cannot list resources.', 'woo-wallet' ), array( 'status' => rest_authorization_required_code() ) );
+		if ( ! apply_filters( 'onplay_wallet_rest_check_permissions', current_user_can( 'manage_woocommerce' ), 'read', $request ) ) {
+			return new WP_Error( 'woocommerce_rest_cannot_view', __( 'Sorry, you cannot list resources.', 'onplay-wallet' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -164,8 +164,8 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 	 * @return WP_Error|boolean
 	 */
 	public function create_item_permissions_check( $request ) {
-		if ( ! apply_filters( 'woo_wallet_rest_check_permissions', current_user_can( 'manage_woocommerce' ), 'create', $request ) ) {
-			return new WP_Error( 'woocommerce_rest_cannot_create', __( 'Sorry, you are not allowed to create resources.', 'woo-wallet' ), array( 'status' => rest_authorization_required_code() ) );
+		if ( ! apply_filters( 'onplay_wallet_rest_check_permissions', current_user_can( 'manage_woocommerce' ), 'create', $request ) ) {
+			return new WP_Error( 'woocommerce_rest_cannot_create', __( 'Sorry, you are not allowed to create resources.', 'onplay-wallet' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		return true;
 	}
@@ -180,10 +180,10 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 		$params = $request->get_params();
 		$user   = get_user_by( 'email', $params['email'] );
 		if ( ! $user ) {
-			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
 		$args = apply_filters(
-			'woo_wallet_rest_api_get_items_args',
+			'onplay_wallet_rest_api_get_items_args',
 			array(
 				'user_id' => $user->ID,
 				'fields'  => 'all_with_meta',
@@ -208,9 +208,9 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 		$params = $request->get_params();
 		$user   = get_user_by( 'email', $params['email'] );
 		if ( ! $user ) {
-			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
-		$balance = woo_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
+		$balance = onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
 		return new WP_REST_Response(
 			array(
 				'balance'  => $balance,
@@ -229,15 +229,15 @@ class WC_REST_OnplayWallet_V3_Controller extends WC_REST_Controller {
 		$params = $request->get_params();
 		$user   = get_user_by( 'email', $params['email'] );
 		if ( ! $user ) {
-			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'woo-wallet' ), array( 'status' => 404 ) );
+			return new WP_Error( 'onplaywallet_rest_invalid_email', __( 'Invalid User.', 'onplay-wallet' ), array( 'status' => 404 ) );
 		}
 		if ( isset( $params['type'] ) && isset( $params['amount'] ) ) {
 			$note           = isset( $params['note'] ) ? $params['note'] : '';
 			$transaction_id = false;
 			if ( 'credit' === $params['type'] ) {
-				$transaction_id = woo_wallet()->wallet->credit( $user->ID, $params['amount'], $note );
+				$transaction_id = onplay_wallet()->wallet->credit( $user->ID, $params['amount'], $note );
 			} elseif ( 'debit' === $params['type'] ) {
-				$transaction_id = woo_wallet()->wallet->debit( $user->ID, $params['amount'], $note );
+				$transaction_id = onplay_wallet()->wallet->debit( $user->ID, $params['amount'], $note );
 			}
 			if ( $transaction_id ) {
 				return new WP_REST_Response(
