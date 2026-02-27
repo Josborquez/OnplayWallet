@@ -55,6 +55,7 @@ if ( ! class_exists( 'Onplay_Wallet_Admin' ) ) {
 		 */
 		public function __construct() {
 			add_action( 'admin_init', array( $this, 'admin_init' ) );
+			add_action( 'admin_notices', array( $this, 'check_pos_webhook_health' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ), 10 );
 			add_action( 'admin_menu', array( $this, 'admin_menu' ), 50 );
 			if ( 'on' === onplay_wallet()->settings_api->get_option( 'is_enable_cashback_reward_program', '_wallet_settings_credit', 'off' ) && 'product' === onplay_wallet()->settings_api->get_option( 'cashback_rule', '_wallet_settings_credit', 'cart' ) ) {
@@ -254,6 +255,51 @@ if ( ! class_exists( 'Onplay_Wallet_Admin' ) ) {
 				add_filter( 'woocommerce_account_settings', array( $this, 'add_woocommerce_account_endpoint_settings' ) );
 			}
 			$this->download_export_file();
+		}
+
+		/**
+		 * Display admin notice when POS webhook endpoint is not reachable.
+		 *
+		 * Runs a lightweight self-test on the OnplayWallet settings page
+		 * to detect misconfiguration before the POS tries to send webhooks.
+		 */
+		public function check_pos_webhook_health() {
+			$screen = get_current_screen();
+			if ( ! $screen || false === strpos( $screen->id, 'onplay-wallet' ) ) {
+				return;
+			}
+
+			$pos_settings = get_option( '_wallet_settings_pos', array() );
+			if ( empty( $pos_settings['pos_enable'] ) || 'on' !== $pos_settings['pos_enable'] ) {
+				return;
+			}
+
+			// Check 1: webhook secret must exist.
+			if ( empty( $pos_settings['pos_webhook_secret'] ) ) {
+				echo '<div class="notice notice-error"><p>';
+				echo '<strong>OnplayWallet:</strong> ';
+				esc_html_e( 'El secreto del webhook POS no está configurado. Los webhooks desde OnplayPOS serán rechazados. Desactiva y reactiva el plugin o configura el secreto manualmente en Ajustes > OnplayPOS.', 'onplay-wallet' );
+				echo '</p></div>';
+			}
+
+			// Check 2: REST API namespace must be available.
+			$rest_server = rest_get_server();
+			$namespaces  = $rest_server->get_namespaces();
+			if ( ! in_array( 'onplay/v1', $namespaces, true ) ) {
+				echo '<div class="notice notice-error"><p>';
+				echo '<strong>OnplayWallet:</strong> ';
+				esc_html_e( 'El namespace REST API "onplay/v1" no está registrado. El endpoint de webhook no funcionará. Verifica que no haya errores PHP en el log del servidor y que los permalinks estén correctamente configurados (Ajustes > Enlaces permanentes > Guardar cambios).', 'onplay-wallet' );
+				echo '</p></div>';
+			}
+
+			// Check 3: verify the specific webhook route exists.
+			$routes = $rest_server->get_routes();
+			if ( ! isset( $routes['/onplay/v1/pos/webhook'] ) ) {
+				echo '<div class="notice notice-error"><p>';
+				echo '<strong>OnplayWallet:</strong> ';
+				esc_html_e( 'La ruta /onplay/v1/pos/webhook no está registrada en la REST API. Esto causa un error 404 para los webhooks del POS. Revisa el log de errores PHP.', 'onplay-wallet' );
+				echo '</p></div>';
+			}
 		}
 		/**
 		 * Download generated export CSV file.
