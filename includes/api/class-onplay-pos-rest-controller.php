@@ -287,6 +287,20 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			if ( ! empty( $stored_api_key ) && hash_equals( $stored_api_key, $api_key ) ) {
 				return true;
 			}
+
+			// Log diagnostic info for API key mismatch.
+			$this->log_webhook(
+				'error',
+				sprintf(
+					'API key mismatch — received key starts with "%s" (len=%d), stored key starts with "%s" (len=%d). Verify that the POS env var matches the key in OnplayWallet > POS Settings.',
+					substr( $api_key, 0, 8 ) . '...',
+					strlen( $api_key ),
+					! empty( $stored_api_key ) ? substr( $stored_api_key, 0, 8 ) . '...' : '(empty)',
+					strlen( $stored_api_key )
+				)
+			);
+		} else {
+			$this->log_webhook( 'error', 'POS request received without X-Onplay-Api-Key header.' );
 		}
 
 		// Fall back to WooCommerce REST API authentication.
@@ -440,6 +454,33 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'onplay_invalid_amount', __( 'Amount must be greater than zero.', 'onplay-wallet' ), array( 'status' => 400 ) );
 		}
 
+		// Check for duplicate transaction by POS reference.
+		if ( $reference ) {
+			global $wpdb;
+			$existing = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT tm.transaction_id FROM {$wpdb->base_prefix}onplay_wallet_transaction_meta tm WHERE tm.meta_key = '_pos_reference' AND tm.meta_value = %s LIMIT 1",
+					$reference
+				)
+			);
+			if ( $existing ) {
+				$new_balance = onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
+				return new WP_REST_Response(
+					array(
+						'success'        => true,
+						'transaction_id' => intval( $existing ),
+						'type'           => 'credit',
+						'amount'         => $amount,
+						'new_balance'    => floatval( $new_balance ),
+						'currency'       => get_woocommerce_currency(),
+						'reference'      => $reference,
+						'duplicate'      => true,
+					),
+					200
+				);
+			}
+		}
+
 		$details = __( 'Credit from OnplayPOS', 'onplay-wallet' );
 		if ( $reference ) {
 			$details .= ' #' . $reference;
@@ -498,6 +539,33 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 
 		if ( $amount <= 0 ) {
 			return new WP_Error( 'onplay_invalid_amount', __( 'Amount must be greater than zero.', 'onplay-wallet' ), array( 'status' => 400 ) );
+		}
+
+		// Check for duplicate transaction by POS reference.
+		if ( $reference ) {
+			global $wpdb;
+			$existing = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT tm.transaction_id FROM {$wpdb->base_prefix}onplay_wallet_transaction_meta tm WHERE tm.meta_key = '_pos_reference' AND tm.meta_value = %s LIMIT 1",
+					$reference
+				)
+			);
+			if ( $existing ) {
+				$new_balance = onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' );
+				return new WP_REST_Response(
+					array(
+						'success'        => true,
+						'transaction_id' => intval( $existing ),
+						'type'           => 'debit',
+						'amount'         => $amount,
+						'new_balance'    => floatval( $new_balance ),
+						'currency'       => get_woocommerce_currency(),
+						'reference'      => $reference,
+						'duplicate'      => true,
+					),
+					200
+				);
+			}
 		}
 
 		// Check sufficient balance.
