@@ -61,3 +61,87 @@ function onplay_wallet() {
 }
 
 $GLOBALS['onplay_wallet'] = onplay_wallet();
+
+/**
+ * Safety-net: guarantee the POS webhook route is always registered.
+ *
+ * Runs at priority 99 so the main class has a chance to register it first.
+ * If the route already exists (normal flow), this is a no-op.  If the main
+ * class failed for any reason, this ensures the POS can still reach us and
+ * we get a useful diagnostic rather than a bare 404.
+ */
+add_action(
+	'rest_api_init',
+	function () {
+		// If the full controller already registered, nothing to do.
+		if ( class_exists( 'OnplayPOS_REST_Controller' ) ) {
+			return;
+		}
+
+		// Attempt to load the controller one more time.
+		$controller_file = __DIR__ . '/includes/api/class-onplay-pos-rest-controller.php';
+		if ( file_exists( $controller_file ) ) {
+			include_once $controller_file;
+			if ( class_exists( 'OnplayPOS_REST_Controller' ) ) {
+				$pos_controller = new OnplayPOS_REST_Controller();
+				$pos_controller->register_routes();
+				return;
+			}
+		}
+
+		// Last resort: register a minimal webhook endpoint with inline HMAC verification.
+		register_rest_route(
+			'onplay/v1',
+			'/pos/webhook',
+			array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => function ( WP_REST_Request $request ) {
+						$body  = json_decode( $request->get_body(), true );
+						$event = isset( $body['event'] ) ? sanitize_text_field( $body['event'] ) : '';
+
+						error_log( sprintf(
+							'OnplayWallet FALLBACK webhook hit: event=%s (full controller unavailable)',
+							$event ?: '(empty)'
+						) );
+
+						return new WP_REST_Response(
+							array(
+								'success' => false,
+								'message' => 'OnplayPOS controller could not be loaded. Webhook was received but not processed. Check server PHP error log.',
+								'event'   => $event,
+							),
+							503
+						);
+					},
+					'permission_callback' => function ( WP_REST_Request $request ) {
+						$pos_settings   = get_option( '_wallet_settings_pos', array() );
+						$webhook_secret = isset( $pos_settings['pos_webhook_secret'] ) ? $pos_settings['pos_webhook_secret'] : '';
+
+						if ( empty( $webhook_secret ) ) {
+							return new WP_Error( 'onplay_webhook_not_configured', 'Webhook secret not configured.', array( 'status' => 500 ) );
+						}
+
+						$signature = $request->get_header( 'X-Onplay-Signature' );
+						if ( empty( $signature ) ) {
+							return new WP_Error( 'onplay_webhook_no_signature', 'Missing webhook signature.', array( 'status' => 401 ) );
+						}
+
+						$body         = $request->get_body();
+						$expected_raw = hash_hmac( 'sha256', $body, $webhook_secret );
+						$expected_pre = 'sha256=' . $expected_raw;
+
+						if ( ! hash_equals( $expected_raw, $signature ) && ! hash_equals( $expected_pre, $signature ) ) {
+							return new WP_Error( 'onplay_webhook_invalid_signature', 'Invalid webhook signature.', array( 'status' => 403 ) );
+						}
+
+						return true;
+					},
+				),
+			)
+		);
+
+		error_log( 'OnplayWallet: POS controller unavailable — fallback webhook route registered at priority 99.' );
+	},
+	99
+);

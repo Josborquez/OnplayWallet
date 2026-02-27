@@ -55,6 +55,32 @@ class Onplay_Wallet_Install {
 		}
 		self::create_tables();
 		self::cteate_product_if_not_exist();
+		self::ensure_pos_settings();
+	}
+
+	/**
+	 * Ensure POS settings exist with auto-generated secrets.
+	 *
+	 * Generates pos_api_key and pos_webhook_secret if they are missing so the
+	 * inbound webhook endpoint can verify signatures immediately after activation.
+	 */
+	private static function ensure_pos_settings() {
+		$pos_settings = get_option( '_wallet_settings_pos', array() );
+		$changed      = false;
+
+		if ( empty( $pos_settings['pos_api_key'] ) ) {
+			$pos_settings['pos_api_key'] = 'opk_' . bin2hex( random_bytes( 20 ) );
+			$changed = true;
+		}
+
+		if ( empty( $pos_settings['pos_webhook_secret'] ) ) {
+			$pos_settings['pos_webhook_secret'] = 'opwhs_' . bin2hex( random_bytes( 24 ) );
+			$changed = true;
+		}
+
+		if ( $changed ) {
+			update_option( '_wallet_settings_pos', $pos_settings );
+		}
 	}
 
 	/**
