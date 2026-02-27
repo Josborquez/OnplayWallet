@@ -260,13 +260,54 @@ final class Onplay_Wallet {
 	 * WP REST API init.
 	 */
 	public function rest_api_init() {
+		// Register wallet REST controller.
 		include_once ONPLAY_WALLET_ABSPATH . 'includes/api/class-onplay-wallet-rest-controller.php';
-		$rest_controller = new WOO_Wallet_REST_Controller();
-		$rest_controller->register_routes();
+		if ( class_exists( 'WOO_Wallet_REST_Controller' ) ) {
+			$rest_controller = new WOO_Wallet_REST_Controller();
+			$rest_controller->register_routes();
+		}
 
+		// Register POS REST controller independently so a failure above does not block it.
+		$this->register_pos_rest_routes();
+	}
+
+	/**
+	 * Register OnplayPOS REST API routes.
+	 *
+	 * Isolated from the wallet REST controller so that POS webhook
+	 * reception is always available even if other REST controllers
+	 * fail to load.
+	 */
+	private function register_pos_rest_routes() {
 		include_once ONPLAY_WALLET_ABSPATH . 'includes/api/class-onplay-pos-rest-controller.php';
-		$pos_controller = new OnplayPOS_REST_Controller();
-		$pos_controller->register_routes();
+		if ( class_exists( 'OnplayPOS_REST_Controller' ) ) {
+			$pos_controller = new OnplayPOS_REST_Controller();
+			$pos_controller->register_routes();
+		} else {
+			// Fallback: register only the critical webhook endpoint so the POS can always reach us.
+			register_rest_route(
+				'onplay/v1',
+				'/pos/webhook',
+				array(
+					array(
+						'methods'             => WP_REST_Server::CREATABLE,
+						'callback'            => function ( WP_REST_Request $request ) {
+							return new WP_REST_Response(
+								array(
+									'success' => false,
+									'message' => 'OnplayPOS REST controller failed to load. Check PHP error log.',
+								),
+								500
+							);
+						},
+						'permission_callback' => '__return_true',
+					),
+				)
+			);
+			if ( function_exists( 'error_log' ) ) {
+				error_log( 'OnplayWallet: OnplayPOS_REST_Controller class not found. Webhook fallback route registered.' );
+			}
+		}
 	}
 
 	/**

@@ -302,7 +302,11 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Validate webhook signature.
+	 * Validate webhook signature and optional timestamp.
+	 *
+	 * Verifies the HMAC-SHA256 signature sent in X-Onplay-Signature.
+	 * When X-Onplay-Timestamp is present, also rejects requests older
+	 * than 5 minutes to mitigate replay attacks.
 	 *
 	 * @param WP_REST_Request $request Request.
 	 * @return bool|WP_Error
@@ -312,12 +316,24 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		$webhook_secret = isset( $pos_settings['pos_webhook_secret'] ) ? $pos_settings['pos_webhook_secret'] : '';
 
 		if ( empty( $webhook_secret ) ) {
+			$this->log_webhook( 'error', 'Webhook secret not configured in POS settings.' );
 			return new WP_Error( 'onplay_webhook_not_configured', __( 'Webhook secret not configured.', 'onplay-wallet' ), array( 'status' => 500 ) );
 		}
 
 		$signature = $request->get_header( 'X-Onplay-Signature' );
 		if ( empty( $signature ) ) {
+			$this->log_webhook( 'error', 'Webhook received without X-Onplay-Signature header.' );
 			return new WP_Error( 'onplay_webhook_no_signature', __( 'Missing webhook signature.', 'onplay-wallet' ), array( 'status' => 401 ) );
+		}
+
+		// Validate timestamp to prevent replay attacks (5-minute tolerance).
+		$timestamp = $request->get_header( 'X-Onplay-Timestamp' );
+		if ( ! empty( $timestamp ) ) {
+			$ts_value = is_numeric( $timestamp ) ? intval( $timestamp ) : strtotime( $timestamp );
+			if ( $ts_value && abs( time() - $ts_value ) > 300 ) {
+				$this->log_webhook( 'error', sprintf( 'Webhook timestamp too old: %s (server time: %d).', $timestamp, time() ) );
+				return new WP_Error( 'onplay_webhook_timestamp_expired', __( 'Webhook timestamp expired. Request is older than 5 minutes.', 'onplay-wallet' ), array( 'status' => 403 ) );
+			}
 		}
 
 		$body         = $request->get_body();
@@ -326,10 +342,26 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 
 		// Support both raw hash and sha256= prefixed signature.
 		if ( ! hash_equals( $expected_raw, $signature ) && ! hash_equals( $expected_pre, $signature ) ) {
+			$this->log_webhook( 'error', 'Invalid webhook signature.' );
 			return new WP_Error( 'onplay_webhook_invalid_signature', __( 'Invalid webhook signature.', 'onplay-wallet' ), array( 'status' => 403 ) );
 		}
 
 		return true;
+	}
+
+	/**
+	 * Log webhook events for debugging.
+	 *
+	 * @param string $level   Log level: 'info', 'error'.
+	 * @param string $message Message to log.
+	 */
+	private function log_webhook( $level, $message ) {
+		if ( defined( 'WC_LOG_DIR' ) && class_exists( 'WC_Logger' ) ) {
+			$logger = wc_get_logger();
+			$logger->log( $level, '[OnplayPOS Webhook] ' . $message, array( 'source' => 'onplay-pos-webhook' ) );
+		} else {
+			error_log( 'OnplayWallet [' . $level . ']: ' . $message );
+		}
 	}
 
 	/**
@@ -738,6 +770,12 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 	public function handle_webhook( $request ) {
 		$body  = json_decode( $request->get_body(), true );
 		$event = isset( $body['event'] ) ? sanitize_text_field( $body['event'] ) : '';
+
+		$this->log_webhook( 'info', sprintf(
+			'Webhook received: event=%s, header_event=%s',
+			$event ?: '(empty)',
+			$request->get_header( 'X-Onplay-Event' ) ?: '(none)'
+		) );
 
 		if ( empty( $event ) ) {
 			return new WP_Error( 'onplay_webhook_no_event', __( 'Missing event type.', 'onplay-wallet' ), array( 'status' => 400 ) );
