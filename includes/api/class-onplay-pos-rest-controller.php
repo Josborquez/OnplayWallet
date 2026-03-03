@@ -269,6 +269,35 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
+
+		// POST /onplay/v1/pos/adjust - Adjust wallet balance (admin correction from POS).
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/adjust',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'adjust_balance' ),
+					'permission_callback' => array( $this, 'check_pos_permissions' ),
+					'args'                => array(
+						'email'       => array(
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_email',
+						),
+						'new_balance' => array(
+							'required' => true,
+							'type'     => 'number',
+						),
+						'reason'      => array(
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+							'default'           => '',
+						),
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -1235,5 +1264,88 @@ class OnplayPOS_REST_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_REST_Response( $response, 200 );
+	}
+
+	/**
+	 * POST /onplay/v1/pos/adjust - Adjust wallet balance from POS.
+	 *
+	 * Calculates the difference between current and requested balance,
+	 * then applies a credit or debit accordingly.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function adjust_balance( $request ) {
+		$email       = sanitize_email( $request->get_param( 'email' ) );
+		$new_balance = floatval( $request->get_param( 'new_balance' ) );
+		$reason      = $request->get_param( 'reason' );
+
+		if ( ! is_email( $email ) ) {
+			return new WP_Error( 'onplay_invalid_email', __( 'Invalid email address.', 'onplay-wallet' ), array( 'status' => 400 ) );
+		}
+
+		if ( $new_balance < 0 ) {
+			return new WP_Error( 'onplay_invalid_balance', __( 'Balance cannot be negative.', 'onplay-wallet' ), array( 'status' => 400 ) );
+		}
+
+		$user = get_user_by( 'email', $email );
+		if ( ! $user ) {
+			return new WP_Error( 'onplay_user_not_found', __( 'Customer not found.', 'onplay-wallet' ), array( 'status' => 404 ) );
+		}
+
+		$current_balance = floatval( onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' ) );
+		$difference      = $new_balance - $current_balance;
+
+		// No adjustment needed.
+		if ( abs( $difference ) < 0.01 ) {
+			return new WP_REST_Response(
+				array(
+					'success'     => true,
+					'balance'     => $current_balance,
+					'currency'    => get_woocommerce_currency(),
+					'adjusted'    => false,
+					'message'     => 'Balance already matches.',
+				),
+				200
+			);
+		}
+
+		$details = ! empty( $reason )
+			? sprintf( __( 'POS adjustment: %s', 'onplay-wallet' ), $reason )
+			: __( 'Balance adjustment from OnplayPOS', 'onplay-wallet' );
+
+		$reference      = 'POS-ADJUST-' . time();
+		$transaction_id = null;
+
+		if ( $difference > 0 ) {
+			$transaction_id = onplay_wallet()->wallet->credit( $user->ID, abs( $difference ), $details );
+		} else {
+			$transaction_id = onplay_wallet()->wallet->debit( $user->ID, abs( $difference ), $details );
+		}
+
+		if ( ! $transaction_id ) {
+			return new WP_Error( 'onplay_adjustment_failed', __( 'Balance adjustment could not be processed.', 'onplay-wallet' ), array( 'status' => 500 ) );
+		}
+
+		// Mark as POS-originated adjustment.
+		update_wallet_transaction_meta( $transaction_id, '_onplay_source', 'pos_adjustment', $user->ID );
+		update_wallet_transaction_meta( $transaction_id, '_pos_reference', $reference, $user->ID );
+
+		$final_balance = floatval( onplay_wallet()->wallet->get_wallet_balance( $user->ID, 'edit' ) );
+
+		return new WP_REST_Response(
+			array(
+				'success'          => true,
+				'transaction_id'   => $transaction_id,
+				'type'             => $difference > 0 ? 'credit' : 'debit',
+				'amount'           => abs( $difference ),
+				'previous_balance' => $current_balance,
+				'new_balance'      => $final_balance,
+				'currency'         => get_woocommerce_currency(),
+				'reference'        => $reference,
+				'adjusted'         => true,
+			),
+			200
+		);
 	}
 }
