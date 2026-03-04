@@ -58,7 +58,7 @@ if ( ! class_exists( 'OnplayPOS_Connector' ) ) {
 		 *
 		 * @var int
 		 */
-		private $timeout = 10;
+		private $timeout = 15;
 
 		/**
 		 * Class constructor.
